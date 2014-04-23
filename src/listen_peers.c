@@ -14,7 +14,7 @@ void *listen_peers(void *p){
         int i = 0;
         for(; i < MAXPEERS; i ++){
             peer_t *ptr = &peers_pool[i];
-            if(ptr->used == 1 && strcmp(ptr->ip, ip) == 0 && ptr->port == port){
+            if(ptr->used == 1 && strcmp(ptr->ip, ip) == 0){
                 pthread_mutex_lock(&ptr->sock_mutex);
                 if(ptr->sockfd < 0){
                     ptr->sockfd = sockfd;
