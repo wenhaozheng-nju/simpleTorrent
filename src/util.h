@@ -58,4 +58,13 @@ void client_shutdown(int sig);
 // 从announce url中提取主机和端口数据
 announce_url_t* parse_announce_url(char* announce);
 
+//与每个peer建立连接
+void *connect_to_peer(void *p);
+
+//监听其他peer
+void *listen_peer(void *p);
+
+//从其他peer接收报文
+void *recv_from_peer(void *p);
+
 #endif

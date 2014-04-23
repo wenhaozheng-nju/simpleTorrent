@@ -30,11 +30,11 @@ struct be_node;
 typedef struct be_dict {
 	char *key;
 	struct be_node *val;
+    int length;
 } be_dict;
 
 typedef struct be_node {
 	be_type type;
-    int length;
 	union {
 		char *s;
 		long long i;

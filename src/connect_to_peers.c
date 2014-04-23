@@ -4,7 +4,17 @@
 void *connect_to_peer(void *p){
     int k = (int)p;
     peer_t *mypeer = &peers_pool[k];
-    mypeer->sockfd = connect_to_host(mypeer->ip, mypeer->port);
+    pthread_mutex_lock(&mypeer->sock_mutex);
+    if(mypeer->sockfd < 0){
+        mypeer->sockfd = connect_to_host(mypeer->ip, mypeer->port);
+        pthread_t thread;
+        int rc = pthread_create(&thread, NULL, recv_from_peer, (void *)k);
+        if(rc){
+            printf("ERROR, return code from pthread_create() is %d\n", rc);
+            exit(-1);
+        }
+    }
+    pthread_mutex_unlock(&mypeer->sock_mutex);
     char *shkhdmsg;
     char *current;
     int msglen = 0;
@@ -47,6 +57,7 @@ void *connect_to_peer(void *p){
         sleep(1);
         times ++;
     }
+
     if(mypeer->status == 1){
         
     }
