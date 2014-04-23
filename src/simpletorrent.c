@@ -45,6 +45,7 @@ int main(int argc, char **argv)
   {
     val[i] = rand();
   }
+    g_peerport = rand() % (65535 - 1024) + 1025;   //分配监听peer的端口号
   memcpy(g_my_id,(char*)val,20);       //把五个随机int值拷贝到g_my_id中
   strncpy(g_my_ip,argv[2],strlen(argv[2]));
   g_my_ip[strlen(argv[2])] = '\0';
@@ -151,6 +152,7 @@ int main(int argc, char **argv)
       printf("\n");
       printf("Peer ip: %s\n",g_tracker_response->peers[i].ip);
       printf("Peer port: %d\n",g_tracker_response->peers[i].port);
+        //为每个新增的peer创建线程
     }
   
     // 必须等待td->interval秒, 然后再发出下一个GET请求

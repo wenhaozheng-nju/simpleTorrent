@@ -135,6 +135,7 @@ reverse_byte_orderi	src/util.c	/^int reverse_byte_orderi(int i)$/;"	f
 s	src/bencode.h	/^		char *s;$/;"	m	union:be_node::__anon2
 size	src/btdata.h	/^  int size;       \/\/ B编码字符串的字节数$/;"	m	struct:_tracker_response
 sockfd	src/btdata.h	/^  int sockfd;$/;"	m	struct:_peer_t
+strncmp1	src/process_tracker_response.c	/^int strncmp1 ( char * s1, char * s2, size_t n )$/;"	f
 torrentmetadata_t	src/btdata.h	/^} torrentmetadata_t;$/;"	t	typeref:struct:_torrentmetadata
 tracker_data	src/btdata.h	/^} tracker_data;$/;"	t	typeref:struct:_tracker_data
 tracker_request	src/btdata.h	/^} tracker_request;$/;"	t	typeref:struct:_tracker_request
