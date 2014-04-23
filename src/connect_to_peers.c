@@ -47,23 +47,9 @@ void *connect_to_peer(void *p){
 
     msglen = current - shkhdmsg;
 
-    int times = 0;
-    while(times < 5){
-        if(mypeer->status == 0){
-            send(mypeer->sockfd, shkhdmsg, msglen, 0);
-        }
-        else{
-            break;
-        }
-        sleep(1);
-        times ++;
-    }
-
-    if(mypeer->status == 1){
-        
-    }
-    else{
-        printf("Fail to connect to peer at %s:%d", mypeer->ip, mypeer->port);
-    }
+    if(mypeer->status == 0){
+        send(mypeer->sockfd, shkhdmsg, msglen, 0);
+    } 
+    free(shkhdmsg);
 
 }

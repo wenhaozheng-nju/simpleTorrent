@@ -16,6 +16,7 @@ void *listen_peers(void *p){
             if(ptr->used == 1 && strcmp(ptr->ip, ip) == 0 && ptr->port == port){
                 pthread_mutex_lock(&ptr->sock_mutex);
                 if(ptr->sockfd < 0){
+                    ptr->sockfd = sockfd;
                     pthread_mutex_unlock(&ptr->sock_mutex);
                     break;
                 }
