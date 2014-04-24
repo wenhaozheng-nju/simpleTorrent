@@ -30,27 +30,24 @@ void sendBitField(int sockfd){
 void *check_and_keepalive(void *p){
     int k = (int)p;
     while(1){
-        int i = 0;
-        for(; i < MAXPEERS; i ++) {
-            if(i != k && peers_pool[i].used == 1 && peers_pool[i].status >= 2) {
-                pthread_mutex_lock(&peers_pool[i].alive_mutex);
-                if(peers_pool[i].alive == 0){
-                    pthread_mutex_lock(&peers_pool[i].sock_mutex);
-                    if(peers_pool[i].sockfd > 0){
-                        close(peers_pool[i].sockfd);
-                        peers_pool[i].sockfd = -1;
-                        peers_pool[i].status = 0;
-                    }
-                    pthread_mutex_unlock(&peers_pool[i].sock_mutex);
+        if(peers_pool[k].used == 1 && peers_pool[k].status >= 2) {
+            pthread_mutex_lock(&peers_pool[k].alive_mutex);
+            if(peers_pool[k].alive == 0){
+                pthread_mutex_lock(&peers_pool[k].sock_mutex);
+                if(peers_pool[k].sockfd > 0){
+                    close(peers_pool[k].sockfd);
+                    peers_pool[k].sockfd = -1;
+                    peers_pool[k].status = 0;
                 }
-                else{
-                    int len = 0;
-                    printf("Now I will send to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
-                    send(peers_pool[i].sockfd, &len, sizeof(int), 0);
-                }
-                peers_pool[i].alive = 0;
-                pthread_mutex_unlock(&peers_pool[i].alive_mutex);
+                pthread_mutex_unlock(&peers_pool[k].sock_mutex);
             }
+            else{
+                int len = 0;
+                printf("Now I will send to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
+                send(peers_pool[k].sockfd, &len, sizeof(int), 0);
+            }
+            peers_pool[k].alive = 0;
+            pthread_mutex_unlock(&peers_pool[k].alive_mutex);
         }
         sleep(120);
     }
