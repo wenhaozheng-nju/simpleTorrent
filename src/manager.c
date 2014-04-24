@@ -16,10 +16,10 @@ void sendBitField(int sockfd){
     int i = 0;
     for(; i < piecesNum; i ++){
         if(piecesInfo[i] == 1){
-            buffer[i] = 0x01;
+            buffer[i] = 1;
         }
         else{
-            buffer[i] = 0x00;
+            buffer[i] = 0;
         }
     }
 

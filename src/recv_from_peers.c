@@ -146,15 +146,14 @@ void *recv_from_peer(void *p){
                     case 5:{
                         //bitfield
                         printf("Now I recv bitfield pack from %s:%d\n", my_peer->ip, my_peer->port);
-                        int pNum = len -1;
-                        my_peer->piecesInfo = (int*)malloc(pNum * sizeof(int));
+                        my_peer->piecesInfo = (int*)malloc(piecesNum * sizeof(int));
                         int i = 1;
-                        for(; i <= pNum; i ++){
+                        for(; i <= piecesNum; i ++){
                             my_peer->piecesInfo[i - 1] = buffer[i];
                         }
                         printf("%s:%d has pieces:", my_peer->ip, my_peer->port);
-                        for(i = 0; i < pNum; i ++){
-                            printf("%d ", my_peer->piecesInfo[i]);
+                        for(i = 0; i < piecesNum; i ++){
+                            printf("%d:%d ", buffer[i], my_peer->piecesInfo[i]);
                         }
                         printf("\n");
                         //send interested
