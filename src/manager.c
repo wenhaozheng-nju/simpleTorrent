@@ -29,11 +29,20 @@ void sendBitField(int sockfd){
     for(i= 0; i < piecesNum; i ++){
         int temp;
         if(i != piecesNum -1){
-            temp = g_torrentmeta->piece_len / 65536 + 1;
+            temp = g_torrentmeta->piece_len / 65536;
+            if(g_torrentmeta->piece_len % 65536 == 0){
+                temp ++;
+            }
         }
         else{
             int piece_len = g_filelen % g_torrentmeta->piece_len;
-            temp = piece_len / 65536 + 1;
+            if(piece_len == 0){
+                piece_len = g_torrentmeta->piece_len;
+            }
+            temp = piece_len / 65536;
+            if(piece_len % 65536 == 0){
+                temp ++;
+            }
         }
         subpiecesNum[i] = temp;
         isSubpiecesReceived[i] = (int *)malloc(sizeof(int) * temp);
@@ -76,7 +85,7 @@ void *check_and_keepalive(void *p){
 }
 
 void sendRequest(int k){
-    printf("k is %d", k);
+    printf("k is %d\n", k);
     peer_t* my_peer = &peers_pool[k];
     int i, requestPiece = -1;
     for(i = 0; i < piecesNum; i ++){
@@ -85,7 +94,7 @@ void sendRequest(int k){
             break;
         }
     }
-    printf("requestPiece is %d", requestPiece);
+    printf("requestPiece is %d\n", requestPiece);
     if(requestPiece >= 0){
         piecesInfo[requestPiece] = 1;
         int j;
