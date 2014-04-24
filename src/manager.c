@@ -44,7 +44,7 @@ void sendBitField(int sockfd){
 
     printf("Now I will send BitField pack\n");
     send(sockfd, temp_buffer, sizeof(int) + len * sizeof(char), 0);
-    free(buffer);
+    free(temp_buffer);
 }
 
 void *check_and_keepalive(void *p){
@@ -121,7 +121,7 @@ void sendRequest(int k){
                 
             printf("Now I will send Request pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
             send(my_peer->sockfd, temp_buffer, sizeof(int)*4 + sizeof(char), 0);
-            free(buffer);
+            free(temp_buffer);
         }
         printf("now will return from sendRequest\n");
     }
@@ -145,7 +145,7 @@ void sendPiece(int sockfd, int index, int begin, int len){
     file2buffer(index, begin, len, send_buff);
     printf("Now I will send piece pack\n");
     send(sockfd, temp_buff, sizeof(int) * 3 + sizeof(unsigned char) * (1 + len), 0);
-    free(send_buff);
+    free(temp_buff);
 }
 
 void sendHave(int sockfd, int index){
@@ -160,5 +160,5 @@ void sendHave(int sockfd, int index){
     strncpy(send_buff, (char*)&index, 4);
     printf("Now I will send have pack\n");
     send(sockfd, temp_buff, sizeof(int) * 2 + sizeof(unsigned char), 0);
-    free(send_buff);
+    free(temp_buff);
 }
