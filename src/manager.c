@@ -120,6 +120,7 @@ void sendRequest(int k){
             strncpy(buffer, (char*)&len1, 4);
                 
             printf("Now I will send Request pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
+            printf("index is %d, begin is %d, len is %d",index, begin, len1);
             send(my_peer->sockfd, temp_buffer, sizeof(int)*4 + sizeof(char), 0);
             free(temp_buffer);
         }
