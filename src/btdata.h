@@ -116,8 +116,6 @@ char g_my_id[20];
 int g_done; // 表明程序是否应该终止
 
 torrentmetadata_t* g_torrentmeta;
-int piecesNum;
-int *piecesInfo;
 char* g_filedata;      // 文件的实际数据
 int g_filelen;
 int g_num_pieces;
@@ -132,5 +130,10 @@ int g_downloaded;
 int g_left;
 
 peer_t peers_pool[MAXPEERS];
+
+int piecesNum;
+int *piecesInfo;
+int **isSubpiecesReceived;
+int *subpiecesNum;
 
 #endif

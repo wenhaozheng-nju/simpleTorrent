@@ -139,7 +139,9 @@ void *recv_from_peer(void *p){
                     //not interested
                     break;}
                     case 4:{
-                    //have
+                        //have
+                        int index = *(int*)&buffer[1];
+                        my_peer->piecesInfo[index] = 1;
                     break;}
                     case 5:{
                         //bitfield
@@ -157,13 +159,37 @@ void *recv_from_peer(void *p){
                             }
                         }
                         printf("\n");
-                        //other operation
+                        //send interested
+                        //send request
+                        sendRequest(k);
                     break;}
                     case 6:{
-                    //request
+                        //request
+                        int index = *(int*)&buffer[1];
+                        int begin = *(int*)&buffer[5];
+                        int blocklen = *(int*)&buffer[9];
+                        sendPiece(my_peer->sockfd, index, begin, blocklen);
                     break;}
                     case 7:{
-                    //piece
+                        //piece
+                        int index = *(int*)&buffer[1];
+                        int begin = *(int*)&buffer[5];
+                        int blocklen = len - sizeof(char) - sizeof(int)*2;
+                        buffer2file(index, begin, blocklen, buffer + 9);
+                        int subPieceNo = begin / 65536;
+                        assert(piecesInfo[index] == 1);
+                        isSubpiecesReceived[index][subPieceNo] = 1;
+                        int flag = 1;
+                        int m = 0;
+                        for(; m < subpiecesNum[index]; m ++){
+                            if(isSubpiecesReceived[index][m] == 0){
+                                flag = 0;
+                            }
+                        }
+                        if(flag == 1){
+                            sendHave(my_peer->sockfd, index);
+                            sendRequest(k);
+                        }
                     break;}
                     case 8:{
                     //cancel
