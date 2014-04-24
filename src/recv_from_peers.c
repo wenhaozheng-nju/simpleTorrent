@@ -1,7 +1,10 @@
 #include "util.h"
 #include "btdata.h"
+#include <errno.h>
 
 #define BUFSIZE 1500
+
+extern int errno;
 
 void sendshkhdmsg(int sockfd){
     printf("\033[34m""I will send shkhdmsg to somebody\n""\033[m");
@@ -197,6 +200,9 @@ void *recv_from_peer(void *p){
         }
     }
     printf("recv n is %d\n", n);
+    if(n < 0){
+        printf("errno is %d", errno);
+    }
     free(buffer);
     printf("connect broke\n");
     pthread_mutex_lock(&my_peer->sock_mutex);

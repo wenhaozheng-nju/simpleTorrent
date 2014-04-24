@@ -1,5 +1,8 @@
 #include "util.h"
 #include "btdata.h"
+#include <errno.h>
+
+extern int errno;
 
 void sendBitField(int sockfd){
     piecesInfo = parse_data_file(g_torrentmeta, &piecesNum);
