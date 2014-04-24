@@ -102,8 +102,10 @@ typedef struct _peer_t {
   int have_interest;  // 作为下载者, 对远端peer的分片有兴趣
   char name[20];
   int *piecesInfo;
+  int isRequest;
   pthread_mutex_t sock_mutex;
   pthread_mutex_t alive_mutex;
+  pthread_mutex_t request_mutex;
 } peer_t;
 
 

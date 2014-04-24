@@ -34,9 +34,11 @@ void init()
         peers_pool[i].interested = 0;
         peers_pool[i].choked = 1;
         peers_pool[i].have_interest = 0;
+        peers_pool[i].isRequest = 0;
         memset(peers_pool[i].name,0,20);
         pthread_mutex_init(&(peers_pool[i].sock_mutex),NULL);
         pthread_mutex_init(&(peers_pool[i].alive_mutex),NULL);
+        pthread_mutex_init(&(peers_pool[i].request_mutex),NULL);
     }
 }
 void update_g_left(int *pieces_info)

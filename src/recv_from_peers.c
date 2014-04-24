@@ -162,6 +162,7 @@ void *recv_from_peer(void *p)
             case 2:
             {
                 //interested
+                my_peer->interested = 1;
                 break;
             }
             case 3:
@@ -175,6 +176,19 @@ void *recv_from_peer(void *p)
                 int index = *(int*)&buffer[1];
                 index = ntohl(index);
                 my_peer->piecesInfo[index] = 1;
+                if(piecesInfo[index] == 0){
+                    if(my_peer->have_interest == 0){
+                        //send interested
+                        sendInterested(sockfd);
+                        my_peer->have_interest = 1;
+                    }
+                    pthread_mutex_lock(&my_peer->request_mutex);
+                    if(my_peer->isRequest == 0){
+                        //send request
+                        sendRequest(k);
+                    }
+                    pthread_mutex_unlock(&my_peer->request_mutex);
+                }
                 break;
             }
             case 5:
@@ -218,21 +232,31 @@ void *recv_from_peer(void *p)
                     printf("%d ", my_peer->piecesInfo[i]);
                 }
                 printf("\n");
-                //send interested
-                //send request
-                sendRequest(k);
+                if(my_peer->have_interest == 0){
+                    //send interested
+                    sendInterested(sockfd);
+                    my_peer->have_interest = 1;
+                }
+                pthread_mutex_lock(&my_peer->request_mutex);
+                if(my_peer->isRequest == 0){
+                    //send request
+                    sendRequest(k);
+                }
+                pthread_mutex_unlock(&my_peer->request_mutex);
                 break;
             }
             case 6:
             {
                 //request
-                int index = *(int*)&buffer[1];
-                index = ntohl(index);
-                int begin = *(int*)&buffer[5];
-                begin = ntohl(begin);
-                int blocklen = *(int*)&buffer[9];
-                blocklen = ntohl(blocklen);
-                sendPiece(my_peer->sockfd, index, begin, blocklen);
+                if(my_peer->interested == 1){
+                    int index = *(int*)&buffer[1];
+                    index = ntohl(index);
+                    int begin = *(int*)&buffer[5];
+                    begin = ntohl(begin);
+                    int blocklen = *(int*)&buffer[9];
+                    blocklen = ntohl(blocklen);
+                    sendPiece(my_peer->sockfd, index, begin, blocklen);
+                }
                 break;
             }
             case 7:
@@ -259,8 +283,27 @@ void *recv_from_peer(void *p)
                 }
                 if(flag == 1)
                 {
-                    sendHave(my_peer->sockfd, index);
-                    sendRequest(k);
+                    pthread_mutex_lock(&my_peer->request_mutex);
+                    my_peer->isRequest = 0;
+                    pthread_mutex_unlock(&my_peer->request_mutex);
+                    //sendHave to all peers
+                    int q = 0;
+                    for(; q < MAXPEERS; q ++){
+                        if(peers_pool[q].used == 1 && peers_pool[q].status >= 2 && peers_pool[q].sockfd > 0){
+                            sendHave(peers_pool[q].sockfd, index);
+                        }
+                    }
+                    //sendInterested
+                    if(my_peer->have_interest == 0){
+                        sendInterested(my_peer->sockfd);
+                        my_peer->have_interest = 1;
+                    }
+                    //sendRequest
+                    pthread_mutex_lock(&my_peer->request_mutex);
+                    if(my_peer->isRequest == 0){
+                        sendRequest(k);
+                    }
+                    pthread_mutex_unlock(&my_peer->request_mutex);
                 }
                 break;
             }

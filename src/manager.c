@@ -133,6 +133,7 @@ void sendRequest(int k)
     printf("requestPiece is %d\n", requestPiece);
     if(requestPiece >= 0)
     {
+        my_peer->isRequest = 1;
         piecesInfo[requestPiece] = 1;
         int j;
         printf("subpiecesNum is %d\n", subpiecesNum[requestPiece]);
