@@ -80,4 +80,8 @@ void *check_and_keepalive(void *p);
 
 void buffer2file(int index,int begin,int length,char *buf);
 void file2buffer(int index,int begin,int length,char *buf);
+
+void sendRequest(int k);
+void sendPiece(int sockfd, int index, int begin, int len);
+void sendHave(int sockfd, int index);
 #endif
