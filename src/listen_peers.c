@@ -18,8 +18,6 @@ void *listen_peers(void *p)
         for(; i < MAXPEERS; i ++)
         {
             peer_t *ptr = &peers_pool[i];
-            if(ptr->used)
-                printf("the ip is %s\n",ptr->ip);
             if(ptr->used == 1 && strcmp(ptr->ip, ip) == 0)
             {
                 printf("\033[31m""111\n""\033[m");
