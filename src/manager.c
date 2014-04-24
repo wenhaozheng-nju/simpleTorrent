@@ -2,7 +2,6 @@
 #include "btdata.h"
 
 void sendBitField(int sockfd){
-    printf("Now I will send BitField pack\n");
     piecesInfo = parse_data_file(g_torrentmeta, &piecesNum);
     unsigned char *buffer = (unsigned char*)malloc(sizeof(int) + (1 + piecesNum) * sizeof(unsigned char));
     memset(buffer, 0, sizeof(int) + (1 + piecesNum) * sizeof(unsigned char));
@@ -24,6 +23,7 @@ void sendBitField(int sockfd){
         }
     }
 
+    printf("Now I will send BitField pack\n");
     send(sockfd, temp_buffer, sizeof(int) + len * sizeof(char), 0);
 }
 
@@ -33,6 +33,7 @@ void *check_and_keepalive(void *p){
         if(peers_pool[k].used == 1 && peers_pool[k].status >= 2) {
             pthread_mutex_lock(&peers_pool[k].alive_mutex);
             if(peers_pool[k].alive == 0){
+                printf("1111111111111111\n");
                 pthread_mutex_lock(&peers_pool[k].sock_mutex);
                 if(peers_pool[k].sockfd > 0){
                     close(peers_pool[k].sockfd);
@@ -40,10 +41,11 @@ void *check_and_keepalive(void *p){
                     peers_pool[k].status = 0;
                 }
                 pthread_mutex_unlock(&peers_pool[k].sock_mutex);
+                break;
             }
             else{
                 int len = 0;
-                printf("Now I will send to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
+                printf("Now I will send keepalive pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
                 send(peers_pool[k].sockfd, &len, sizeof(int), 0);
             }
             peers_pool[k].alive = 0;

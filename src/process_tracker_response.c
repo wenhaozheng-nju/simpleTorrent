@@ -74,7 +74,6 @@ tracker_response* preprocess_tracker_response(int sockfd)
     }
     strncpy(tmp,rcvline,16);
     tmp[16] = '\0';
-    printf("tmp is %s\n",tmp);
     if(strncmp(tmp,"Content-Length: ",strlen("Content-Length: ")))
     {
         perror("Error, didn't match Content-Length line");
@@ -102,7 +101,6 @@ tracker_response* preprocess_tracker_response(int sockfd)
         count++;
     }
     datasize = atoi(num);
-    printf("datasize is %d\n",datasize);
     //printf("NUMBER RECEIVED: %d\n",datasize);
     memset(rcvline,0xFF,MAXLINE);
     memset(num,0x0,MAXLINE);
@@ -138,10 +136,6 @@ tracker_response* preprocess_tracker_response(int sockfd)
     }
     data[datasize] = '\0';
 
-    for(i=0; i<datasize; i++)
-        printf("%c",data[i]);
-    printf("\n");
-
     // 分配, 填充并返回tracker_response结构.
     tracker_response* ret;
     ret = (tracker_response*)malloc(sizeof(tracker_response));
@@ -161,7 +155,7 @@ tracker_data* get_tracker_data(char* data, int len)
 {
     tracker_data* ret;
     be_node* ben_res;
-    printf("data is %s\n",data);
+    //printf("data is %s\n",data);
     ben_res = be_decoden(data,len);
     if(ben_res->type != BE_DICT)
     {
@@ -179,7 +173,7 @@ tracker_data* get_tracker_data(char* data, int len)
     int i;
     for (i=0; ben_res->val.d[i].val != NULL; i++)
     {
-        printf("%s\n",ben_res->val.d[i].key);
+        //printf("%s\n",ben_res->val.d[i].key);
         // 检查是否有失败键
         if(!strncmp(ben_res->val.d[i].key,"failure reason",strlen("failure reason")))
         {
@@ -263,7 +257,7 @@ void get_peers(tracker_data* td, be_node* peer_list)
     for (i=0; peer_list->val.l[i] != NULL; i++)
     {
         // 确认元素是一个字典
-        printf("val.l type is %d\n",peer_list->val.l[i]->type);
+        //printf("val.l type is %d\n",peer_list->val.l[i]->type);
         if(peer_list->val.l[i]->type != BE_DICT)
         {
             perror("Expecting dict, got something else");
@@ -273,7 +267,7 @@ void get_peers(tracker_data* td, be_node* peer_list)
         numpeers++;
     }
 
-    printf("Num peers: %d\n",numpeers);
+    //printf("Num peers: %d\n",numpeers);
 
     // 为peer分配空间
     td->numpeers = numpeers;
@@ -308,13 +302,13 @@ void get_peer_data(peerdata* peer, be_node* ben_res)
     // 遍历键并填充peerdata结构
     for (i=0; ben_res->val.d[i].val != NULL; i++)
     {
-        printf("%s\n",ben_res->val.d[i].key);
+        //printf("%s\n",ben_res->val.d[i].key);
 
         // peer id键
 
         if(!strncmp(ben_res->val.d[i].key,"peer id",strlen("peer id")))
         {
-            printf("Peer id: %s\n", ben_res->val.d[i].val->val.s);
+            //printf("Peer id: %s\n", ben_res->val.d[i].val->val.s);
             memcpy(peer->id,ben_res->val.d[i].val->val.s,20);
             peer->id[20] = '\0';
             /*
@@ -329,7 +323,7 @@ void get_peer_data(peerdata* peer, be_node* ben_res)
         if(!strncmp(ben_res->val.d[i].key,"ip",strlen("ip")))
         {
             int len;
-            printf("Peer ip: %s\n",ben_res->val.d[i].val->val.s);
+            //printf("Peer ip: %s\n",ben_res->val.d[i].val->val.s);
             len = strlen(ben_res->val.d[i].val->val.s);
             peer->ip = (char*)malloc((len+1)*sizeof(char));
             strcpy(peer->ip,ben_res->val.d[i].val->val.s);

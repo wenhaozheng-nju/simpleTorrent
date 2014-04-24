@@ -25,7 +25,7 @@ void init()
         peers_pool[i].port = 0;
         peers_pool[i].ip = NULL;
         peers_pool[i].status = 0;
-        peers_pool[i].alive = 0;
+        peers_pool[i].alive = 1;
         peers_pool[i].sockfd = -1;
         peers_pool[i].choking = 1;
         peers_pool[i].interested = 0;
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
         val[i] = rand();
     }
     g_peerport = rand() % (65535 - 1024) + 1025;   //分配监听peer的端口号
-    printf("g_peerport is %d\n",g_peerport);
+    //printf("g_peerport is %d\n",g_peerport);
     //g_peerport = 0x4554;
     memcpy(g_my_id,(char*)val,20);       //把五个随机int值拷贝到g_my_id中
     strncpy(g_my_ip,argv[2],strlen(argv[2]));
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
     announce_url_t* announce_info;
     announce_info = parse_announce_url(g_torrentmeta->announce);
     // 提取tracker url中的IP地址
-    printf("HOSTNAME: %s\n",announce_info->hostname);
+    //printf("HOSTNAME: %s\n",announce_info->hostname);
     struct hostent *record;
     //int i_j = strcmp(announce_info->hostname,"114.212.190.188");
     //printf("HOSTNAME is %x\n",announce_info->hostname[15]);
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
     }
     struct in_addr* address;
     address =(struct in_addr * )record->h_addr_list[0];
-    printf("Tracker IP Address: %s\n", inet_ntoa(* address));
+    //printf("Tracker IP Address: %s\n", inet_ntoa(* address));
     strcpy(g_tracker_ip,inet_ntoa(*address));
     g_tracker_port = announce_info->port;
 
@@ -157,7 +157,7 @@ int main(int argc, char **argv)
     MESG = make_tracker_request(BT_STARTED,&mlen);
     while(!g_done)
     {
-        printf("next send packet\n");
+        //printf("next send packet\n");
         if(sockfd <= 0)
         {
             //创建套接字发送报文给Tracker
@@ -172,10 +172,10 @@ int main(int argc, char **argv)
             free(MESG);
             // -1 指定不发送event参数
             MESG = make_tracker_request(-1,&mlen);
-            printf("MESG: ");
+            /*printf("MESG: ");
             for(i=0; i<mlen; i++)
                 printf("%c",MESG[i]);
-            printf("\n");
+            printf("\n");*/
         }
         send(sockfd, MESG, mlen, 0);
         firsttime = 0;
@@ -208,17 +208,17 @@ int main(int argc, char **argv)
         */
         free(tmp2);
         tmp2 = NULL;
-        printf("Num Peers: %d\n",g_tracker_response->numpeers);
+        //printf("Num Peers: %d\n",g_tracker_response->numpeers);
         for(i=0; i<g_tracker_response->numpeers; i++)
         {
             //printf("Peer id: %d\n",g_tracker_response->peers[i].id);
-            printf("Peer id: ");
+            //printf("Peer id: ");
             int idl;
-            for(idl=0; idl<20; idl++)
+            /*for(idl=0; idl<20; idl++)
                 printf("%02X ",(unsigned char)g_tracker_response->peers[i].id[idl]);
             printf("\n");
             printf("Peer ip: %s\n",g_tracker_response->peers[i].ip);
-            printf("Peer port: %d\n",g_tracker_response->peers[i].port);
+            printf("Peer port: %d\n",g_tracker_response->peers[i].port);*/
             //为每个新增的peer创建线程
             int flag = find_in_poor(&(g_tracker_response->peers[i]));
             if(flag < 0)
