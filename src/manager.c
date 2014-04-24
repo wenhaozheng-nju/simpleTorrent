@@ -76,6 +76,7 @@ void *check_and_keepalive(void *p){
 }
 
 void sendRequest(int k){
+    printf("k is %d", k);
     peer_t* my_peer = &peers_pool[k];
     int i, requestPiece = -1;
     for(i = 0; i < piecesNum; i ++){
@@ -88,6 +89,7 @@ void sendRequest(int k){
     if(requestPiece >= 0){
         piecesInfo[requestPiece] = 1;
         int j;
+        printf("subpiecesNum is %d\n", subpiecesNum[requestPiece]);
         for(j = 0; j < subpiecesNum[requestPiece]; j ++){
             unsigned char *buffer = (char*)malloc(sizeof(int)*4 + sizeof(unsigned char));
             memset(buffer, 0, sizeof(int)*4 + sizeof(unsigned char));
@@ -128,6 +130,7 @@ void sendRequest(int k){
                 
             printf("Now I will send Request pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
             printf("index is %d, begin is %d, len is %d\n",index, begin, len1);
+
             send(my_peer->sockfd, temp_buffer, sizeof(int)*4 + sizeof(char), 0);
             free(temp_buffer);
         }

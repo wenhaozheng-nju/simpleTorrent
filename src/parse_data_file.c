@@ -233,7 +233,7 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
             else
             {
                 fread(buf,1,meta_tree->piece_len,data_file);
-                printf("buf is %x\n",buf[0]);
+                //printf("buf is %x\n",buf[0]);
                 SHA1Context sha;
                 SHA1Reset(&sha);
                 SHA1Input(&sha,(const unsigned char *)buf,meta_tree->piece_len);
