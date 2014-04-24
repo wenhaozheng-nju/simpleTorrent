@@ -30,7 +30,7 @@ void sendBitField(int sockfd){
         int temp;
         if(i != piecesNum -1){
             temp = g_torrentmeta->piece_len / 65536;
-            if(g_torrentmeta->piece_len % 65536 == 0){
+            if(g_torrentmeta->piece_len % 65536 != 0){
                 temp ++;
             }
         }
@@ -40,7 +40,7 @@ void sendBitField(int sockfd){
                 piece_len = g_torrentmeta->piece_len;
             }
             temp = piece_len / 65536;
-            if(piece_len % 65536 == 0){
+            if(piece_len % 65536 != 0){
                 temp ++;
             }
         }
