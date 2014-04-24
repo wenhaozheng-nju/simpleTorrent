@@ -41,6 +41,7 @@ void read_buf(char *buf,int offset,int data_len)
     fseek(filename,my_file_array[i].length - cur_offset,SEEK_SET);
     if(my_file_array[i].length-cur_offset >= data_len)
     {
+        printf("offset is %d\n",my_file_array[i].length-cur_offset);
         fread(buf,1,data_len,filename);
         fclose(filename);
         return;
@@ -230,6 +231,7 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
             else
             {
                 fread(buf,1,meta_tree->piece_len,data_file);
+                printf("buf is %x\n",buf[0]);
                 SHA1Context sha;
                 SHA1Reset(&sha);
                 SHA1Input(&sha,(const unsigned char *)buf,meta_tree->piece_len);
@@ -370,6 +372,7 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
             len -= meta_tree->piece_len;
             tmp_pieces +=20;
         }
+        free(buf);
         return ret;
     }
     return NULL;
