@@ -61,10 +61,11 @@ void *recv_from_peer(void *p)
     int port = my_peer->port;
     int n;
 
-    unsigned char *buffer = (unsigned char*)malloc(BUFSIZE);
+    unsigned char *buffer;
 
     while(1)
     {
+        buffer = (unsigned char*)malloc(BUFSIZE);
         memset(buffer, 0, BUFSIZE);
         printf("now I waiting recv\n");
         n = recv(sockfd, buffer, 4, 0);
@@ -75,12 +76,9 @@ void *recv_from_peer(void *p)
         }
         int len = *(int*)buffer;
         len = ntohl(len);
-        if(len > BUFSIZE)
-        {
-            printf("\033[33m len is %d and ",len);
-            printf("len is bigger than BUFSIZE\n \033[m");
-            break;
-        }
+        free(buffer);
+        buffer = (unsigned char*)malloc(len);
+        memset(buffer, 0, len);
         /*
         if(len == 19 && strcmp(buffer, BT_PROTOCOL) == 0){
             //握手报文
@@ -319,6 +317,7 @@ void *recv_from_peer(void *p)
             }
             }
         }
+        free(buffer);
     }
     printf("recv n is %d\n", n);
     if(n < 0)
