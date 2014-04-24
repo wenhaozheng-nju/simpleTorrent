@@ -120,6 +120,7 @@ void *recv_from_peer(void *p){
             //其他类型
             if(len == 0){
                 //keepalive
+                printf("Now I recv keepalive pack from %s:%d\n", my_peer->ip, my_peer->port);
                 my_peer->alive = 1;
             }
             else{
@@ -142,12 +143,20 @@ void *recv_from_peer(void *p){
                     break;}
                     case 5:{
                         //bitfield
+                        printf("Now I recv bitfield pack from %s:%d\n", my_peer->ip, my_peer->port);
                         int pNum = len -1;
                         my_peer->piecesInfo = (int*)malloc(pNum * sizeof(int));
                         int i = 1;
                         for(; i <= pNum; i ++){
                             my_peer->piecesInfo[i - 1] = buffer[i];
                         }
+                        printf("%s:%d has pieces:", my_peer->ip, my_peer->port);
+                        for(i = 0; i < pNum; i ++){
+                            if(my_peer->piecesInfo[i] == 1){
+                                printf("%d ", i);
+                            }
+                        }
+                        printf("\n");
                         //other operation
                     break;}
                     case 6:{

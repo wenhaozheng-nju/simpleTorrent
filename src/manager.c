@@ -2,6 +2,7 @@
 #include "btdata.h"
 
 void sendBitField(int sockfd){
+    printf("Now I will send BitField pack\n");
     piecesInfo = parse_data_file(g_torrentmeta, &piecesNum);
     unsigned char *buffer = (unsigned char*)malloc(sizeof(int) + (1 + piecesNum) * sizeof(unsigned char));
     memset(buffer, 0, sizeof(int) + (1 + piecesNum) * sizeof(unsigned char));
@@ -44,6 +45,7 @@ void *check_and_keepalive(void *p){
                 }
                 else{
                     int len = 0;
+                    printf("Now I will send to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
                     send(peers_pool[i].sockfd, &len, sizeof(int), 0);
                 }
                 peers_pool[i].alive = 0;
