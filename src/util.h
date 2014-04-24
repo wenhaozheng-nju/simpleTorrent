@@ -71,4 +71,9 @@ void *recv_from_peer(void *p);
 //返回种子分片信息
 int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece);
 
+//发送Bitfield报文
+void sendBitField(int sockfd);
+
+//检查和保持alive
+void *check_and_keepalive(void *p);
 #endif

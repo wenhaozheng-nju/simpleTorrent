@@ -25,6 +25,7 @@ void init()
         peers_pool[i].port = 0;
         peers_pool[i].ip = NULL;
         peers_pool[i].status = 0;
+        peers_pool[i].alive = 0;
         peers_pool[i].sockfd = -1;
         peers_pool[i].choking = 1;
         peers_pool[i].interested = 0;
@@ -32,6 +33,7 @@ void init()
         peers_pool[i].have_interest = 0;
         memset(peers_pool[i].name,0,20);
         pthread_mutex_init(&(peers_pool[i].sock_mutex),NULL);
+        pthread_mutex_init(&(peers_pool[i].alive_mutex),NULL);
     }
 }
 
