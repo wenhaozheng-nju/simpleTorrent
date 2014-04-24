@@ -100,15 +100,18 @@ void sendRequest(int k){
         int j;
         printf("subpiecesNum is %d\n", subpiecesNum[requestPiece]);
         for(j = 0; j < subpiecesNum[requestPiece]; j ++){
+            printf("11111\n");
             unsigned char *buffer = (char*)malloc(sizeof(int)*4 + sizeof(unsigned char));
             memset(buffer, 0, sizeof(int)*4 + sizeof(unsigned char));
             unsigned char *temp_buffer = buffer;
+            printf("22222\n");
 
             int len = 13;
             strncpy(buffer, (char*)&len, 4);
             buffer += sizeof(int);
             
             *buffer ++ = 6;
+            printf("33333\n");
 
             int index = requestPiece;
             strncpy(buffer, (char*)&index, 4);
@@ -117,6 +120,7 @@ void sendRequest(int k){
             strncpy(buffer, (char*)&begin, 4);
             buffer += sizeof(int);  
             int len1;
+            printf("44444\n");
             if(j != subpiecesNum[requestPiece] - 1){
                 len1 = 65536;
             }
@@ -129,6 +133,9 @@ void sendRequest(int k){
                 }
                 else{
                     int piece_len = g_filelen % g_torrentmeta->piece_len;
+                    if(piece_len == 0){
+                        piece_len = g_torrentmeta->piece_len;
+                    }
                     len1 = piece_len % 65536;
                     if(len1 == 0){
                         len1 = 65536;
