@@ -154,9 +154,7 @@ void *recv_from_peer(void *p){
                         }
                         printf("%s:%d has pieces:", my_peer->ip, my_peer->port);
                         for(i = 0; i < pNum; i ++){
-                            if(my_peer->piecesInfo[i] == 1){
-                                printf("%d ", i);
-                            }
+                            printf("%d ", my_peer->piecesInfo[i]);
                         }
                         printf("\n");
                         //send interested

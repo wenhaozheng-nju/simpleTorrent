@@ -82,6 +82,7 @@ void sendRequest(int k){
             break;
         }
     }
+    printf("requestPiece is %d", requestPiece);
     if(requestPiece > 0){
         piecesInfo[requestPiece] = 1;
         int j;
