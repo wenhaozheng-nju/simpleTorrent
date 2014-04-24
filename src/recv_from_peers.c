@@ -197,6 +197,7 @@ void *recv_from_peer(void *p){
         }
     }
     free(buffer);
+    printf("connect broke\n");
     pthread_mutex_lock(&my_peer->sock_mutex);
     if(my_peer->sockfd > 0){
         close(sockfd);
