@@ -83,7 +83,7 @@ void sendRequest(int k){
         }
     }
     printf("requestPiece is %d", requestPiece);
-    if(requestPiece > 0){
+    if(requestPiece >= 0){
         piecesInfo[requestPiece] = 1;
         int j;
         for(j = 0; j < subpiecesNum[requestPiece]; i ++){
