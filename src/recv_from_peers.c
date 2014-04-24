@@ -62,6 +62,9 @@ void *recv_from_peer(void *p)
     int n;
 
     unsigned char *buffer;
+    unsigned char *piecebuffer;
+    piecebuffer = (unsigned char*)malloc(g_torrentmeta->piece_len);
+    memset(piecebuffer, 0, g_torrentmeta->piece_len);
 
     while(1)
     {
@@ -270,7 +273,7 @@ void *recv_from_peer(void *p)
                 int begin = *(int*)&buffer[5];
                 begin = ntohl(begin);
                 int blocklen = len - sizeof(char) - sizeof(int)*2;
-                buffer2file(index, begin, blocklen, buffer + 9);
+                memcpy(piecebuffer+begin, buffer+9, blocklen);
                 g_downloaded += blocklen;
                 int subPieceNo = begin / 65536;
                 assert(piecesInfo[index] == 1);
@@ -286,29 +289,51 @@ void *recv_from_peer(void *p)
                 }
                 if(flag == 1)
                 {
-                    pthread_mutex_lock(&my_peer->request_mutex);
-                    my_peer->isRequest = 0;
-                    pthread_mutex_unlock(&my_peer->request_mutex);
-                    //sendHave to all peers
-                    int q = 0;
-                    for(; q < MAXPEERS; q ++){
-                        if(peers_pool[q].used == 1 && peers_pool[q].status >= 2 && peers_pool[q].sockfd > 0){
-                            sendHave(peers_pool[q].sockfd, index);
+                    int piecelen;
+                    if(index != piecesNum - 1){
+                        piecelen = g_torrentmeta->piece_len;
+                    }
+                    else{
+                        piecelen = g_filelen % g_torrentmeta->piece_len;
+                        if(piecelen == 0){
+                            piecelen = g_torrentmeta->piece_len;
                         }
                     }
-                    //sendInterested
-                    if(my_peer->have_interest == 0){
-                        sendInterested(my_peer->sockfd);
-                        my_peer->have_interest = 1;
-                    }
-                    if(my_peer->choked == 0){
-                        //sendRequest
+                    if(buffer2file(index, piecebuffer, piecelen) == 0){
                         pthread_mutex_lock(&my_peer->request_mutex);
-                        if(my_peer->isRequest == 0){
-                            sendRequest(k);
-                        }
+                        my_peer->isRequest = 0;
                         pthread_mutex_unlock(&my_peer->request_mutex);
+                        //sendHave to all peers
+                        int q = 0;
+                        for(; q < MAXPEERS; q ++){
+                            if(peers_pool[q].used == 1 && peers_pool[q].status >= 2 && peers_pool[q].sockfd > 0){
+                                sendHave(peers_pool[q].sockfd, index);
+                            }
+                        }
+                        //sendInterested
+                        if(my_peer->have_interest == 0){
+                            sendInterested(my_peer->sockfd);
+                            my_peer->have_interest = 1;
+                        }
+                        if(my_peer->choked == 0){
+                            //sendRequest
+                            pthread_mutex_lock(&my_peer->request_mutex);
+                            if(my_peer->isRequest == 0){
+                                sendRequest(k);
+                            }
+                            pthread_mutex_unlock(&my_peer->request_mutex);
+                        }
                     }
+                    else{
+                        piecesInfo[index] = 0;
+                        int j = 0;
+                        for(; j < subpiecesNum[index]; j ++){
+                            isSubpiecesReceived[index][j] = 0;
+                        }
+                    }
+                    free(piecebuffer);
+                    piecebuffer = (unsigned char*)malloc(g_torrentmeta->piece_len);
+                    memset(piecebuffer, 0, g_torrentmeta->piece_len);
                 }
                 break;
             }
@@ -327,6 +352,7 @@ void *recv_from_peer(void *p)
         printf("errno is %d:%s\n", errno, strerror(errno));
     }
     free(buffer);
+    free(piecebuffer);
     printf("connect broke\n");
     printf("sockfd is %d\n",sockfd);
     pthread_mutex_lock(&my_peer->sock_mutex);
