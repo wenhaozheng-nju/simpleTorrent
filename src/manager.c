@@ -25,6 +25,7 @@ void sendBitField(int sockfd){
 
     subpiecesNum = (int *)malloc(sizeof(int) * piecesNum);
     isSubpiecesReceived = (int **)malloc(sizeof(int *) * piecesNum);
+    printf("piece_len is %d\n", g_torrentmeta->piece_len);
     for(i= 0; i < piecesNum; i ++){
         int temp;
         if(i != piecesNum -1){
@@ -87,7 +88,7 @@ void sendRequest(int k){
     if(requestPiece >= 0){
         piecesInfo[requestPiece] = 1;
         int j;
-        for(j = 0; j < subpiecesNum[requestPiece]; i ++){
+        for(j = 0; j < subpiecesNum[requestPiece]; j ++){
             unsigned char *buffer = (char*)malloc(sizeof(int)*4 + sizeof(unsigned char));
             memset(buffer, 0, sizeof(int)*4 + sizeof(unsigned char));
             unsigned char *temp_buffer = buffer;
@@ -120,7 +121,7 @@ void sendRequest(int k){
             strncpy(buffer, (char*)&len1, 4);
                 
             printf("Now I will send Request pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
-            printf("index is %d, begin is %d, len is %d",index, begin, len1);
+            printf("index is %d, begin is %d, len is %d\n",index, begin, len1);
             send(my_peer->sockfd, temp_buffer, sizeof(int)*4 + sizeof(char), 0);
             free(temp_buffer);
         }
