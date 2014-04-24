@@ -147,7 +147,8 @@ void sendRequest(int k){
             printf("Now I will send Request pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
             printf("index is %d, begin is %d, len is %d\n",index, begin, len1);
 
-            send(my_peer->sockfd, temp_buffer, sizeof(int)*4 + sizeof(char), 0);
+            int n = send(my_peer->sockfd, temp_buffer, sizeof(int)*4 + sizeof(char), 0);
+            printf("n is %d\n", n);
             free(temp_buffer);
         }
         printf("now will return from sendRequest\n");
