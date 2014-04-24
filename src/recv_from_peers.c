@@ -51,13 +51,14 @@ void *recv_from_peer(void *p){
     int sockfd = my_peer->sockfd;
     char *ip = my_peer->ip;
     int port = my_peer->port;
+    int n;
 
     unsigned char *buffer = (unsigned char*)malloc(BUFSIZE * sizeof(unsigned char));
 
     while(1){
         memset(buffer, 0, BUFSIZE);
         printf("now I waiting recv\n");
-        int n = recv(sockfd, buffer, 4, 0);
+        n = recv(sockfd, buffer, 4, 0);
         if(n <= 0)
             break;
         int len = *(int*)buffer;
@@ -195,6 +196,7 @@ void *recv_from_peer(void *p){
             }
         }
     }
+    printf("recv n is %d\n", n);
     free(buffer);
     printf("connect broke\n");
     pthread_mutex_lock(&my_peer->sock_mutex);
