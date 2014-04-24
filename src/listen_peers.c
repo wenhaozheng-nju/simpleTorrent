@@ -45,6 +45,7 @@ void *listen_peers(void *p)
         else
         {
             close(sockfd);
+            sockfd = -1;
         }
         free(ip);
     }

@@ -201,7 +201,7 @@ void *recv_from_peer(void *p){
     }
     printf("recv n is %d\n", n);
     if(n < 0){
-        printf("errno is %d", errno);
+        printf("errno is %d:%s\n", errno, strerror(errno));
     }
     free(buffer);
     printf("connect broke\n");
