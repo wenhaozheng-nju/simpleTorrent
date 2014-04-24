@@ -153,7 +153,7 @@ void *recv_from_peer(void *p){
                         }
                         printf("%s:%d has pieces:", my_peer->ip, my_peer->port);
                         for(i = 0; i < piecesNum; i ++){
-                            printf("%d:%d ", buffer[i], my_peer->piecesInfo[i]);
+                            printf("%d ", my_peer->piecesInfo[i]);
                         }
                         printf("\n");
                         //send interested

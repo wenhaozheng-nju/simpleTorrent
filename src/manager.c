@@ -112,10 +112,16 @@ void sendRequest(int k){
             else{
                 if(requestPiece != piecesNum - 1){
                     len1 = g_torrentmeta->piece_len % 65536;
+                    if(len1 == 0){
+                        len1 = 65536;
+                    }
                 }
                 else{
                     int piece_len = g_filelen % g_torrentmeta->piece_len;
                     len1 = piece_len % 65536;
+                    if(len1 == 0){
+                        len1 = 65536;
+                    }
                 }
             }
             strncpy(buffer, (char*)&len1, 4);
