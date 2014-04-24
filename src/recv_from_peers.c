@@ -157,6 +157,13 @@ void *recv_from_peer(void *p)
             case 1:
             {
                 //unchoke
+                my_peer->choked = 0;
+                pthread_mutex_lock(&my_peer->request_mutex);
+                if(my_peer->isRequest == 0){
+                    //send request
+                    sendRequest(k);
+                }
+                pthread_mutex_unlock(&my_peer->request_mutex);
                 break;
             }
             case 2:
@@ -182,12 +189,14 @@ void *recv_from_peer(void *p)
                         sendInterested(sockfd);
                         my_peer->have_interest = 1;
                     }
-                    pthread_mutex_lock(&my_peer->request_mutex);
-                    if(my_peer->isRequest == 0){
-                        //send request
-                        sendRequest(k);
+                    if(my_peer->choked == 0){
+                        pthread_mutex_lock(&my_peer->request_mutex);
+                        if(my_peer->isRequest == 0){
+                            //send request
+                            sendRequest(k);
+                        }
+                        pthread_mutex_unlock(&my_peer->request_mutex);
                     }
-                    pthread_mutex_unlock(&my_peer->request_mutex);
                 }
                 break;
             }
@@ -237,12 +246,6 @@ void *recv_from_peer(void *p)
                     sendInterested(sockfd);
                     my_peer->have_interest = 1;
                 }
-                pthread_mutex_lock(&my_peer->request_mutex);
-                if(my_peer->isRequest == 0){
-                    //send request
-                    sendRequest(k);
-                }
-                pthread_mutex_unlock(&my_peer->request_mutex);
                 break;
             }
             case 6:
@@ -298,12 +301,14 @@ void *recv_from_peer(void *p)
                         sendInterested(my_peer->sockfd);
                         my_peer->have_interest = 1;
                     }
-                    //sendRequest
-                    pthread_mutex_lock(&my_peer->request_mutex);
-                    if(my_peer->isRequest == 0){
-                        sendRequest(k);
+                    if(my_peer->choked == 0){
+                        //sendRequest
+                        pthread_mutex_lock(&my_peer->request_mutex);
+                        if(my_peer->isRequest == 0){
+                            sendRequest(k);
+                        }
+                        pthread_mutex_unlock(&my_peer->request_mutex);
                     }
-                    pthread_mutex_unlock(&my_peer->request_mutex);
                 }
                 break;
             }
