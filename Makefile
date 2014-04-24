@@ -14,7 +14,9 @@ SOURCES=src/util.c \
 				src/simpletorrent.c \
 				src/connect_to_peers.c \
 				src/listen_peers.c \
-				src/recv_from_peers.c
+				src/recv_from_peers.c \
+				src/manager.c \
+				src/parse_data_file.c
 
 OBJS=src/util.o \
      src/bencode.o \
@@ -27,7 +29,9 @@ OBJS=src/util.o \
 		 src/simpletorrent.o \
 		 src/connect_to_peers.o \
 		 src/listen_peers.o \
-		 src/recv_from_peers.o
+		 src/recv_from_peers.o \
+		 src/manager.o \
+		 src/parse_data_file.o
 
 all: ${TARGET}
 

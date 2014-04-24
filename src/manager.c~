@@ -1,5 +1,6 @@
 #include "util.h"
 #include "btdata.h"
+#include "assert.h"
 
 void sendBitField(int sockfd){
     piecesInfo = parse_data_file(g_torrentmeta, &piecesNum);

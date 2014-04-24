@@ -72,7 +72,6 @@ void *recv_from_peer(void *p){
             n = recv(sockfd, buffer, 8, 0);
             if(n<=0)
                 break;
-
             memset(buffer, 0, BUFSIZE);
             n = recv(sockfd, buffer, 20, 0);
             if(n<=0)
@@ -109,7 +108,7 @@ void *recv_from_peer(void *p){
                 printf("shake hands succeed\n");
                 sendBitField(my_peer->sockfd);
                 pthread_t thread;
-                pthread_create(&thread, NULL, check_and_keep_alive, (void*)k);
+                pthread_create(&thread, NULL, check_and_keepalive, (void*)k);
             }
             else
             {
@@ -144,10 +143,10 @@ void *recv_from_peer(void *p){
                     case 5:{
                         //bitfield
                         int pNum = len -1;
-                        my_peer->pieceInfo = (int*)malloc(pNum * sizeof(int));
+                        my_peer->piecesInfo = (int*)malloc(pNum * sizeof(int));
                         int i = 1;
                         for(; i <= pNum; i ++){
-                            my_peer->pieceInfo[i - 1] = buffer[i];
+                            my_peer->piecesInfo[i - 1] = buffer[i];
                         }
                         //other operation
                     break;}
