@@ -78,6 +78,8 @@ torrentmetadata_t* parsetorrentfile(char* filename)
     if(!strncmp(ben_res->val.d[i].key,"announce",strlen("announce")))
     {
 	  ret->announce = (char*)malloc(strlen(ben_res->val.d[i].val->val.s)*sizeof(char));
+	  memset(ret->announce,0,strlen(ben_res->val.d[i].val->val.s)*sizeof(char));
+      
 	  memcpy(ret->announce,ben_res->val.d[i].val->val.s,strlen(ben_res->val.d[i].val->val.s));
       filled++;
     }

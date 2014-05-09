@@ -47,7 +47,7 @@ int main(int argc, char **argv)
   }
   memcpy(g_my_id,(char*)val,20);       //把五个随机int值拷贝到g_my_id中
   strncpy(g_my_ip,argv[2],strlen(argv[2]));
-  g_my_ip[strlen(argv[2])+1] = '\0';
+  g_my_ip[strlen(argv[2])] = '\0';
 
   g_torrentmeta = parsetorrentfile(argv[1]);
   memcpy(g_infohash,g_torrentmeta->info_hash,20);
@@ -61,7 +61,10 @@ int main(int argc, char **argv)
   // 提取tracker url中的IP地址
   printf("HOSTNAME: %s\n",announce_info->hostname);
   struct hostent *record;
+  //int i_j = strcmp(announce_info->hostname,"114.212.190.188");
+  //printf("HOSTNAME is %x\n",announce_info->hostname[15]);
   record = gethostbyname(announce_info->hostname);
+  //record = gethostbyname("114.212.190.188");
   if (record==NULL)
   { 
     printf("gethostbyname failed");
