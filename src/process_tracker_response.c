@@ -1,6 +1,25 @@
 
 #include "btdata.h"
 #include "util.h"
+int strncmp1 ( char * s1, char * s2, size_t n )
+{
+    if ( !n  )//n为无符号整形变量;如果n为0,则返回0
+        return(0);
+    //在接下来的while函数中
+    //  //第一个循环条件：--n,如果比较到前n个字符则退出循环
+    //    //第二个循环条件：*s1,如果s1指向的字符串末尾退出循环
+    //      //第二个循环条件：*s1 == *s2,如果两字符比较不等则退出循环
+    while (--n && *s1 && *s1 == *s2)
+    {
+        printf("s1 is %x and s2 is %x\n",s1[0],s2[0]);
+        s1++;//S1指针自加1,指向下一个字符
+        s2++;//S2指针自加1,指向下一个字符
+    }
+    printf("s1 is %x and s2 is %x\n",s1[0],s2[0]);
+
+    return( *s1 - *s2  );//返回比较结果
+
+}
 
 // 读取并处理来自Tracker的HTTP响应, 确认它格式正确, 然后从中提取数据.
 // 一个Tracker的HTTP响应格式如下所示:
@@ -19,6 +38,8 @@ tracker_response* preprocess_tracker_response(int sockfd)
     int len;
     int offset = 0;
     int datasize = -1;
+    memset(rcvline,0,MAXLINE);
+    memset(tmp,0,MAXLINE);
     printf("Reading tracker response...\n");
     // HTTP LINE
     len = recv(sockfd,rcvline,17,0);
@@ -28,13 +49,22 @@ tracker_response* preprocess_tracker_response(int sockfd)
         exit(-6);
     }
     strncpy(tmp,rcvline,17);
-    if(strncmp(tmp,"HTTP/1.0 200 OK\r\n",strlen("HTTP/1.0 200 OK\r\n")))
+    tmp[17] = '\0';
+    if(strncmp(tmp,"HTTP/1.1 200 OK\r\n",strlen("HTTP/1.1 200 OK\r\n")))
+    //if(strncmp1(tmp,tmp2,strlen(tmp2)))
     {
         perror("Error, didn't match HTTP line");
         exit(-6);
     }
     memset(rcvline,0xFF,MAXLINE);
     memset(tmp,0x0,MAXLINE);
+    //Content-type
+    len = recv(sockfd,rcvline,26,0);
+    if(len <= 0)
+    {
+        perror("Error, cannot read socket from tracker");
+        exit(-6);
+    }
     // Content-Length
     len = recv(sockfd,rcvline,16,0);
     if(len <= 0)
@@ -43,6 +73,8 @@ tracker_response* preprocess_tracker_response(int sockfd)
         exit(-6);
     }
     strncpy(tmp,rcvline,16);
+    tmp[16] = '\0';
+    printf("tmp is %s\n",tmp);
     if(strncmp(tmp,"Content-Length: ",strlen("Content-Length: ")))
     {
         perror("Error, didn't match Content-Length line");
@@ -70,22 +102,19 @@ tracker_response* preprocess_tracker_response(int sockfd)
         count++;
     }
     datasize = atoi(num);
+    printf("datasize is %d\n",datasize);
     //printf("NUMBER RECEIVED: %d\n",datasize);
     memset(rcvline,0xFF,MAXLINE);
     memset(num,0x0,MAXLINE);
-    // 读取Content-type和Pragma行
-    len = recv(sockfd,rcvline,26,0);
-    if(len <= 0)
-    {
-        perror("Error, cannot read socket from tracker");
-        exit(-6);
-    }
+    /*  没有这个字段
+    // 读取Pragma行
     len = recv(sockfd,rcvline,18,0);
     if(len <= 0)
     {
         perror("Error, cannot read socket from tracker");
         exit(-6);
     }
+    */
     // 去除响应中额外的\r\n空行
     len = recv(sockfd,rcvline,2,0);
     if(len <= 0)
@@ -97,6 +126,7 @@ tracker_response* preprocess_tracker_response(int sockfd)
     // 分配空间并读取数据, 为结尾的\0预留空间
     int i;
     data = (char*)malloc((datasize+1)*sizeof(char));
+    memset(data,0,(datasize+1)*sizeof(char));
     for(i=0; i<datasize; i++)
     {
         len = recv(sockfd,data+i,1,0);
@@ -131,13 +161,13 @@ tracker_data* get_tracker_data(char* data, int len)
 {
     tracker_data* ret;
     be_node* ben_res;
+    printf("data is %s\n",data);
     ben_res = be_decoden(data,len);
     if(ben_res->type != BE_DICT)
     {
         perror("Data not of type dict");
         exit(-12);
     }
-
     ret = (tracker_data*)malloc(sizeof(tracker_data));
     if(ret == NULL)
     {
@@ -149,7 +179,7 @@ tracker_data* get_tracker_data(char* data, int len)
     int i;
     for (i=0; ben_res->val.d[i].val != NULL; i++)
     {
-        //printf("%s\n",ben_res->val.d[i].key);
+        printf("%s\n",ben_res->val.d[i].key);
         // 检查是否有失败键
         if(!strncmp(ben_res->val.d[i].key,"failure reason",strlen("failure reason")))
         {
@@ -165,6 +195,7 @@ tracker_data* get_tracker_data(char* data, int len)
         if(!strncmp(ben_res->val.d[i].key,"peers",strlen("peers")))
         {
             be_node* peer_list = ben_res->val.d[i].val;
+            printf("peer_list name is %s\n",peer_list->val.s);
             get_peers(ret,peer_list);
         }
     }

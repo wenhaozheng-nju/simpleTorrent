@@ -127,7 +127,8 @@ int main(int argc, char **argv)
     sockfd = 0;
 
     printf("Decoding response...\n");
-    char* tmp2 = (char*)malloc(tr->size*sizeof(char));
+    char* tmp2 = (char*)malloc(tr->size*sizeof(char)+1);
+    memset(tmp2,0,tr->size*sizeof(char)+1);
     memcpy(tmp2,tr->data,tr->size*sizeof(char));
 
     printf("Parsing tracker data\n");

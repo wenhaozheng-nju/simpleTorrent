@@ -8,7 +8,7 @@
 
 #include <stdlib.h> /* malloc() realloc() free() strtoll() */
 #include <string.h> /* memset() */
-
+#include <stdio.h>
 #include "bencode.h"
 
 static be_node *be_alloc(be_type type)
@@ -81,7 +81,6 @@ static be_node *_be_decode(const char **data, long long *data_len)
 
 	if (!*data_len)
 		return ret;
-
 	switch (**data) {
 		/* lists */
 		case 'l': {
