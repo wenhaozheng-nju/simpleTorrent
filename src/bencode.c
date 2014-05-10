@@ -174,8 +174,13 @@ static inline void _be_free_str(char *str)
 }
 void be_free(be_node *node)
 {
+    if(node == NULL)
+        return;
+    //printf("enter free\n");
+    //printf("node->type is %d\n",node->type);
 	switch (node->type) {
 		case BE_STR:
+            //printf("BE_STR free\n");
 			_be_free_str(node->val.s);
 			break;
 
@@ -183,6 +188,7 @@ void be_free(be_node *node)
 			break;
 
 		case BE_LIST: {
+            //printf("BE_LIST free\n");
 			unsigned int i;
 			for (i = 0; node->val.l[i]; ++i)
 				be_free(node->val.l[i]);
@@ -191,8 +197,10 @@ void be_free(be_node *node)
 		}
 
 		case BE_DICT: {
+            //printf("BE_DICT free\n");
 			unsigned int i;
 			for (i = 0; node->val.d[i].val; ++i) {
+                //printf("node key is %s\n",node->val.d[i].key);
 				_be_free_str(node->val.d[i].key);
 				be_free(node->val.d[i].val);
 			}
@@ -200,7 +208,9 @@ void be_free(be_node *node)
 			break;
 		}
 	}
+    //printf("free node\n");
 	free(node);
+    //printf("leave free\n");
 }
 
 #ifdef BE_DEBUG

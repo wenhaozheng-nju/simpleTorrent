@@ -195,13 +195,58 @@ tracker_data* get_tracker_data(char* data, int len)
         if(!strncmp(ben_res->val.d[i].key,"peers",strlen("peers")))
         {
             be_node* peer_list = ben_res->val.d[i].val;
+            printf("peer list type is %d\n",peer_list->type);
             printf("peer_list name is %s\n",peer_list->val.s);
-            get_peers(ret,peer_list);
+            char *peer_list_start = peer_list->val.s;
+            int len = strlen(peer_list->val.s);
+            int num_of_peers = 0;
+            while(len > 0)
+            {
+                num_of_peers++;
+                len = len - 6;
+            }
+            if(num_of_peers == 0)
+            {
+                perror("接收的返回报文peer数出错");
+                exit(-1);
+            }
+            ret->numpeers = num_of_peers;
+            ret->peers = (peerdata*)malloc(num_of_peers*sizeof(peerdata));
+            int k;
+            for(k=0;k<num_of_peers;k++)
+            {
+                peerdata *temp_peer = &(ret->peers[k]);
+                //ip
+                int *ip_val = (int *)(peer_list->val.s);
+                struct in_addr temp_addr;
+                temp_addr.s_addr = *ip_val;
+                char *ip_addr = inet_ntoa(temp_addr);
+                temp_peer->ip = (char *)malloc(sizeof(ip_addr)+1);
+                strcpy(temp_peer->ip,ip_addr);
+                peer_list->val.s += 4;
+                printf("ip is %s\n",ret->peers[k].ip);
+                //peer id
+                if(strcmp(ip_addr,g_my_ip) == 0)
+                {
+                    strncpy(temp_peer->id,g_my_id,20);
+                    temp_peer->id[20] = '\0';
+                }
+                else
+                {
+                    memset(temp_peer->id,0,21*sizeof(char));
+                }
+                //port
+                unsigned short int *temp_port = (unsigned short int *)(peer_list->val.s);
+                temp_peer->port = *temp_port;
+                peer_list->val.s += 2;
+                printf("port is %d\n",ret->peers[k].port);
+            }
+            peer_list->val.s = peer_list_start;
+            //get_peers(ret,my_list);
         }
     }
-
+    printf("ben_res type is %d\n",ben_res->type);
     be_free(ben_res);
-
     return ret;
 }
 // 处理来自Tracker的字典模式的peer列表
@@ -214,12 +259,12 @@ void get_peers(tracker_data* td, be_node* peer_list)
     for (i=0; peer_list->val.l[i] != NULL; i++)
     {
         // 确认元素是一个字典
+        printf("val.l type is %d\n",peer_list->val.l[i]->type);
         if(peer_list->val.l[i]->type != BE_DICT)
         {
             perror("Expecting dict, got something else");
             exit(-12);
         }
-
         // 找到一个peer, 增加numpeers
         numpeers++;
     }
@@ -259,12 +304,13 @@ void get_peer_data(peerdata* peer, be_node* ben_res)
     // 遍历键并填充peerdata结构
     for (i=0; ben_res->val.d[i].val != NULL; i++)
     {
-        //printf("%s\n",ben_res->val.d[i].key);
+        printf("%s\n",ben_res->val.d[i].key);
 
         // peer id键
+
         if(!strncmp(ben_res->val.d[i].key,"peer id",strlen("peer id")))
         {
-            //printf("Peer id: %s\n", ben_res->val.d[i].val->val.s);
+            printf("Peer id: %s\n", ben_res->val.d[i].val->val.s);
             memcpy(peer->id,ben_res->val.d[i].val->val.s,20);
             peer->id[20] = '\0';
             /*
@@ -279,7 +325,7 @@ void get_peer_data(peerdata* peer, be_node* ben_res)
         if(!strncmp(ben_res->val.d[i].key,"ip",strlen("ip")))
         {
             int len;
-            //printf("Peer ip: %s\n",ben_res->val.d[i].val->val.s);
+            printf("Peer ip: %s\n",ben_res->val.d[i].val->val.s);
             len = strlen(ben_res->val.d[i].val->val.s);
             peer->ip = (char*)malloc((len+1)*sizeof(char));
             strcpy(peer->ip,ben_res->val.d[i].val->val.s);
