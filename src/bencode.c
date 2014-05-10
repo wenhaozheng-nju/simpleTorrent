@@ -38,7 +38,7 @@ long long be_str_len(be_node *node)
 	return ret;
 }
 
-static char *_be_decode_str(const char **data, long long *data_len)
+static char *_be_decode_str(const char **data, long long *data_len,int *len_len)
 {
 	long long sllen = _be_decode_int(data, data_len);
 	long slen = sllen;
@@ -71,6 +71,8 @@ static char *_be_decode_str(const char **data, long long *data_len)
 		ret[len] = '\0';
 		*data += len + 1;
 		*data_len -= len + 1;
+        if(len_len != NULL)
+            *len_len = len;
 	}
 	return ret;
 }
@@ -113,7 +115,7 @@ static be_node *_be_decode(const char **data, long long *data_len)
 			++(*data);
 			while (**data != 'e') {
 				ret->val.d = realloc(ret->val.d, (i + 2) * sizeof(*ret->val.d));
-				ret->val.d[i].key = _be_decode_str(data, data_len);
+				ret->val.d[i].key = _be_decode_str(data, data_len,0);
 				ret->val.d[i].val = _be_decode(data, data_len);
 				++i;
 			}
@@ -143,9 +145,10 @@ static be_node *_be_decode(const char **data, long long *data_len)
 		/* byte strings */
 		case '0'...'9': {
 			ret = be_alloc(BE_STR);
-
-			ret->val.s = _be_decode_str(data, data_len);
-
+            //int temp_len = *data_len;
+            ret->length = 0;
+			ret->val.s = _be_decode_str(data, data_len,&(ret->length));
+            //ret->length = temp_len - (*data_len);
 			return ret;
 		}
 

@@ -84,6 +84,7 @@ typedef struct _peer_t {
   int choked;         // 作为下载者, 我们被远端peer阻塞
   int have_interest;  // 作为下载者, 对远端peer的分片有兴趣
   char name[20]; 
+  pthread_mutex_t sock_mutex;
 } peer_t;
 
 /**************************************

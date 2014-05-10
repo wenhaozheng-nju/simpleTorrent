@@ -197,8 +197,9 @@ tracker_data* get_tracker_data(char* data, int len)
             be_node* peer_list = ben_res->val.d[i].val;
             printf("peer list type is %d\n",peer_list->type);
             printf("peer_list name is %s\n",peer_list->val.s);
+            printf("peer list type is %d\n",peer_list->length);
             char *peer_list_start = peer_list->val.s;
-            int len = strlen(peer_list->val.s);
+            int len = peer_list->length;
             int num_of_peers = 0;
             while(len > 0)
             {
