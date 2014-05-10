@@ -82,8 +82,9 @@ int main(int argc, char **argv)
     {
         val[i] = rand();
     }
-    //g_peerport = rand() % (65535 - 1024) + 1025;   //分配监听peer的端口号
-    g_peerport = 0x4554;
+    g_peerport = rand() % (65535 - 1024) + 1025;   //分配监听peer的端口号
+    printf("g_peerport is %d\n",g_peerport);
+    //g_peerport = 0x4554;
     memcpy(g_my_id,(char*)val,20);       //把五个随机int值拷贝到g_my_id中
     strncpy(g_my_ip,argv[2],strlen(argv[2]));
     g_my_ip[strlen(argv[2])] = '\0';
@@ -133,6 +134,7 @@ int main(int argc, char **argv)
     MESG = make_tracker_request(BT_STARTED,&mlen);
     while(!g_done)
     {
+        printf("next send packet\n");
         if(sockfd <= 0)
         {
             //创建套接字发送报文给Tracker
@@ -197,12 +199,14 @@ int main(int argc, char **argv)
             //为每个新增的peer创建线程
             int num = alloc_peer();
             init_peer(&(g_tracker_response->peers[i]),num);
-            pthread_t temp_thread1;
-            printf("11\n");
+            //printf("11\n");
             //char *hehe = (char *)malloc(60);
             printf("num is %d\n",num);
             if(strcmp(g_tracker_response->peers[i].ip,g_my_ip) != 0)
-                pthread_create(&temp_thread1,NULL,listen_peers,(void *)num);
+            {
+                pthread_t temp_thread1;
+                pthread_create(&temp_thread1,NULL,connect_to_peer,(void *)num);
+            }
             //printf("pthread error_no is %d\n",error_no);
         }
 

@@ -213,7 +213,7 @@ void be_free(be_node *node)
 		}
 	}
     //printf("free node\n");
-	//free(node);
+	free(node);
     //printf("leave free\n");
 }
 

@@ -32,6 +32,7 @@ void *connect_to_peer(void *p){
 
     memset(current, 0, 8);
     current += 8;
+    printf("msglen is %d\n",current-shkhdmsg);
 
     int i = 0;
     for(; i < 5; i ++){
@@ -43,15 +44,19 @@ void *connect_to_peer(void *p){
         }
     }
     
+    printf("msglen is %d\n",current-shkhdmsg);
     for(i = 0; i < 20; i ++){
-        current += sprintf(current, "%02x", (unsigned char)g_my_id[i]);
+        sprintf(current, "%02x", (unsigned char)g_my_id[i]);
+        current ++;
     }
 
     msglen = current - shkhdmsg;
-
+    printf("msglen is %d\n",msglen);
     if(mypeer->status == 0){
         send(mypeer->sockfd, shkhdmsg, msglen, 0);
     } 
+    printf("11\n");
     free(shkhdmsg);
+    printf("22\n");
 
 }

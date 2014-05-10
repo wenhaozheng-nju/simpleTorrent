@@ -9,7 +9,7 @@
  * 一些常量定义
 **************************************/
 
-#define HANDSHAKE_LEN 68  // peer握手消息的长度, 以字节为单位
+#define HANDSHAKE_LEN 71  // peer握手消息的长度, 以字节为单位
 #define BT_PROTOCOL "BitTorrent protocol"
 #define INFOHASH_LEN 20
 #define PEER_ID_LEN 20

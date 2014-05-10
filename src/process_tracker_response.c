@@ -217,13 +217,14 @@ tracker_data* get_tracker_data(char* data, int len)
             int k;
             for(k=0; k<num_of_peers; k++)
             {
+                printf("loop times is %d\n",k);
                 peerdata *temp_peer = &(ret->peers[k]);
                 //ip
                 int *ip_val = (int *)(peer_list->val.s);
                 struct in_addr temp_addr;
                 temp_addr.s_addr = *ip_val;
                 char *ip_addr = inet_ntoa(temp_addr);
-                temp_peer->ip = (char *)malloc(sizeof(ip_addr)+1);
+                temp_peer->ip = (char *)malloc(strlen(ip_addr)+1);
                 strcpy(temp_peer->ip,ip_addr);
                 peer_list->val.s += 4;
                 printf("ip is %s\n",ret->peers[k].ip);
@@ -239,7 +240,7 @@ tracker_data* get_tracker_data(char* data, int len)
                 }
                 //port
                 unsigned short int *temp_port = (unsigned short int *)(peer_list->val.s);
-                temp_peer->port = *temp_port;
+                temp_peer->port = ntohs(*temp_port);
                 peer_list->val.s += 2;
                 printf("port is %d\n",ret->peers[k].port);
             }
