@@ -35,6 +35,7 @@ typedef struct be_dict {
 
 typedef struct be_node {
 	be_type type;
+    int length;
 	union {
 		char *s;
 		long long i;

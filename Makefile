@@ -13,7 +13,8 @@ SOURCES=src/util.c \
 				src/process_tracker_response.c \
 				src/simpletorrent.c \
 				src/connect_to_peers.c \
-				src/listen_peers.c
+				src/listen_peers.c \
+				src/recv_from_peers.c
 
 OBJS=src/util.o \
      src/bencode.o \
@@ -25,12 +26,13 @@ OBJS=src/util.o \
 		 src/process_tracker_response.o \
 		 src/simpletorrent.o \
 		 src/connect_to_peers.o \
-		 src/listen_peers.o
+		 src/listen_peers.o \
+		 src/recv_from_peers.o
 
 all: ${TARGET}
 
 ${TARGET}: ${OBJS}
-	${CC} ${CFLAGS} -o bin/${TARGET} ${LIBS} ${OBJS}
+	${CC} ${CFLAGS} -o bin/${TARGET} ${OBJS} ${LIBS}
 
 %.o: $.c
 	$(CC) -c $(CFLAGS) $@ $<

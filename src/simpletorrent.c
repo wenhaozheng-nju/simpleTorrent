@@ -18,7 +18,7 @@ void init()
     g_done = 0;
     g_tracker_response = NULL;
     int i;
-    for(i=0; i<MAXLINE; i++)
+    for(i=0; i<MAXPEERS; i++)
     {
         peers_pool[i].used = 0;
         memset(peers_pool[i].id,0,21);
@@ -39,7 +39,6 @@ int main(int argc, char **argv)
     FILE* f;
     int rc;
     int i;
-
 // 注意: 你可以根据自己的需要修改这个程序的使用方法
     if(argc < 3)
     {
