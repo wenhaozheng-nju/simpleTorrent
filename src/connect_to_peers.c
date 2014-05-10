@@ -3,6 +3,7 @@
 #include "btdata.h"
 
 void *connect_to_peer(void *p){
+    printf("11\n");
     int k = (int)p;
     peer_t *mypeer = &peers_pool[k];
     pthread_mutex_lock(&mypeer->sock_mutex);
@@ -23,8 +24,9 @@ void *connect_to_peer(void *p){
     shkhdmsg = (char*)malloc(HANDSHAKE_LEN * sizeof(char));
     current = shkhdmsg;
 
-    char pstrlen = (char)strlen(BT_PROTOCOL);
-    *current++ = pstrlen;
+    int pstrlen = strlen(BT_PROTOCOL);
+    memcpy(current, (char*)&pstrlen, sizeof(int));
+    current += sizeof(int);
     strncpy(current, BT_PROTOCOL, pstrlen);
     current += pstrlen;
 

@@ -11,8 +11,9 @@ void sendshkhdmsg(int sockfd){
     shkhdmsg = (char*)malloc(HANDSHAKE_LEN * sizeof(char));
     current = shkhdmsg;
 
-    char pstrlen = (char)strlen(BT_PROTOCOL);
-    *current++ = pstrlen;
+    int pstrlen = strlen(BT_PROTOCOL);
+    memcpy(current, (char*)&pstrlen, sizeof(int));
+    current += sizeof(int);
     strncpy(current, BT_PROTOCOL, pstrlen);
     current += pstrlen;
 
@@ -45,12 +46,12 @@ void *recv_from_peer(void *p){
     char *ip = my_peer->ip;
     int port = my_peer->port;
 
-    char *buffer = (char*)malloc(BUFSIZE*sizeof(char));
+    char *buffer = (char*)malloc(BUFSIZE);
     memset(buffer, 0, BUFSIZE);
 
     while(1){
         recv(sockfd, buffer, 4, 0);
-        int len = ntohl(*(int*)buffer);
+        int len = *(int*)buffer;
         printf("recv peer wire proto len is %d\n", len);
         
         memset(buffer, 0, BUFSIZE);

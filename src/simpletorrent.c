@@ -38,7 +38,7 @@ void init()
 int alloc_peer()
 {
     int i;
-    for(i=0;i<MAXPEERS;i++)
+    for(i=0; i<MAXPEERS; i++)
     {
         if(peers_pool[i].used == 0)
         {
@@ -52,7 +52,7 @@ void init_peer(peerdata *my_peer,int pos)
 {
     memcpy(peers_pool[pos].id,my_peer->id,21);
     peers_pool[pos].port = my_peer->port;
-    peers_pool[pos].ip = (char *)malloc(strlen(my_peer->ip)+1);
+    peers_pool[pos].ip = (char *)malloc((strlen(my_peer->ip)+1)*sizeof(char));
     memcpy(peers_pool[pos].ip,my_peer->ip,strlen(my_peer->ip));
     peers_pool[pos].ip[strlen(my_peer->ip)] = '\0';
 }
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 
     g_filelen = g_torrentmeta->length;
     g_num_pieces = g_torrentmeta->num_pieces;
-    g_filedata = (char*)malloc(g_filelen*sizeof(char));
+    //g_filedata = (char*)malloc(g_filelen*sizeof(char));
 
     announce_url_t* announce_info;
     announce_info = parse_announce_url(g_torrentmeta->announce);
@@ -174,13 +174,15 @@ int main(int argc, char **argv)
 
         printf("Parsing tracker data\n");
         g_tracker_response = get_tracker_data(tmp2,tr->size);
-
+        /*  
         if(tmp)
         {
             free(tmp2);
             tmp2 = NULL;
         }
-
+        */
+        free(tmp2);
+        tmp2 = NULL;
         printf("Num Peers: %d\n",g_tracker_response->numpeers);
         for(i=0; i<g_tracker_response->numpeers; i++)
         {
@@ -194,11 +196,14 @@ int main(int argc, char **argv)
             printf("Peer port: %d\n",g_tracker_response->peers[i].port);
             //为每个新增的peer创建线程
             int num = alloc_peer();
-            init_peer(&(g_tracker_response->peers[i]),num); 
+            init_peer(&(g_tracker_response->peers[i]),num);
             pthread_t temp_thread1;
-            printf("num is %d\n",num);
-            //pthread_create(&temp_thread1,NULL,connect_to_peer,(void *)num);
             printf("11\n");
+            //char *hehe = (char *)malloc(60);
+            printf("num is %d\n",num);
+            if(strcmp(g_tracker_response->peers[i].ip,g_my_ip) != 0)
+                pthread_create(&temp_thread1,NULL,listen_peers,(void *)num);
+            //printf("pthread error_no is %d\n",error_no);
         }
 
         // 必须等待td->interval秒, 然后再发出下一个GET请求

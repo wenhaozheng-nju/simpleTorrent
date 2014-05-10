@@ -13,9 +13,9 @@
 
 static be_node *be_alloc(be_type type)
 {
-	be_node *ret = malloc(sizeof(*ret));
+	be_node *ret = malloc(sizeof(be_node));
 	if (ret) {
-		memset(ret, 0x00, sizeof(*ret));
+		memset(ret, 0, sizeof(be_node));
 		ret->type = type;
 	}
 	return ret;
@@ -174,6 +174,7 @@ static inline void _be_free_str(char *str)
 {
 	if (str)
 		free(str - sizeof(long long));
+        //free(str);
 }
 void be_free(be_node *node)
 {
@@ -212,7 +213,7 @@ void be_free(be_node *node)
 		}
 	}
     //printf("free node\n");
-	free(node);
+	//free(node);
     //printf("leave free\n");
 }
 
