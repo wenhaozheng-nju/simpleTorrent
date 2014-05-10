@@ -51,7 +51,7 @@ tracker_response* preprocess_tracker_response(int sockfd)
     strncpy(tmp,rcvline,17);
     tmp[17] = '\0';
     if(strncmp(tmp,"HTTP/1.1 200 OK\r\n",strlen("HTTP/1.1 200 OK\r\n")))
-    //if(strncmp1(tmp,tmp2,strlen(tmp2)))
+        //if(strncmp1(tmp,tmp2,strlen(tmp2)))
     {
         perror("Error, didn't match HTTP line");
         exit(-6);
@@ -211,9 +211,10 @@ tracker_data* get_tracker_data(char* data, int len)
                 exit(-1);
             }
             ret->numpeers = num_of_peers;
+            printf("num_of_peers is %d\n",num_of_peers);
             ret->peers = (peerdata*)malloc(num_of_peers*sizeof(peerdata));
             int k;
-            for(k=0;k<num_of_peers;k++)
+            for(k=0; k<num_of_peers; k++)
             {
                 peerdata *temp_peer = &(ret->peers[k]);
                 //ip

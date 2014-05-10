@@ -45,7 +45,8 @@ int main(int argc, char **argv)
   {
     val[i] = rand();
   }
-    g_peerport = rand() % (65535 - 1024) + 1025;   //分配监听peer的端口号
+  //g_peerport = rand() % (65535 - 1024) + 1025;   //分配监听peer的端口号
+  g_peerport = 0x4554;
   memcpy(g_my_id,(char*)val,20);       //把五个随机int值拷贝到g_my_id中
   strncpy(g_my_ip,argv[2],strlen(argv[2]));
   g_my_ip[strlen(argv[2])] = '\0';
