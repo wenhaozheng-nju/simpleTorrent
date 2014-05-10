@@ -26,9 +26,35 @@ void init()
         peers_pool[i].ip = NULL;
         peers_pool[i].status = 0;
         peers_pool[i].sockfd = -1;
+        peers_pool[i].choking = 1;
+        peers_pool[i].interested = 0;
+        peers_pool[i].choked = 1;
+        peers_pool[i].have_interest = 0;
         memset(peers_pool[i].name,0,20);
         pthread_mutex_init(&(peers_pool[i].sock_mutex),NULL);
     }
+}
+
+int alloc_peer()
+{
+    int i;
+    for(i=0;i<MAXPEERS;i++)
+    {
+        if(peers_pool[i].used == 0)
+        {
+            peers_pool[i].used = 1;
+            return i;
+        }
+    }
+}
+
+void init_peer(peerdata *my_peer,int pos)
+{
+    memcpy(peers_pool[pos].id,my_peer->id,21);
+    peers_pool[pos].port = my_peer->port;
+    peers_pool[pos].ip = (char *)malloc(strlen(my_peer->ip)+1);
+    memcpy(peers_pool[pos].ip,my_peer->ip,strlen(my_peer->ip));
+    peers_pool[pos].ip[strlen(my_peer->ip)] = '\0';
 }
 
 int main(int argc, char **argv)
@@ -97,9 +123,10 @@ int main(int argc, char **argv)
     signal(SIGINT,client_shutdown);
 
     // 设置监听peer的线程
-    
+    pthread_t temp_thread;
+    pthread_create(&temp_thread,NULL,listen_peers,NULL);
 
-    // 定期联系Tracker服务器
+    // 定期联系Tracker:
     int firsttime = 1;
     int mlen;
     char* MESG;
@@ -166,6 +193,12 @@ int main(int argc, char **argv)
             printf("Peer ip: %s\n",g_tracker_response->peers[i].ip);
             printf("Peer port: %d\n",g_tracker_response->peers[i].port);
             //为每个新增的peer创建线程
+            int num = alloc_peer();
+            init_peer(&(g_tracker_response->peers[i]),num); 
+            pthread_t temp_thread1;
+            printf("num is %d\n",num);
+            //pthread_create(&temp_thread1,NULL,connect_to_peer,(void *)num);
+            printf("11\n");
         }
 
         // 必须等待td->interval秒, 然后再发出下一个GET请求

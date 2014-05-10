@@ -63,7 +63,7 @@ announce_url_t* parse_announce_url(char* announce);
 void *connect_to_peer(void *p);
 
 //监听其他peer
-void *listen_peer(void *p);
+void *listen_peers(void *p);
 
 //从其他peer接收报文
 void *recv_from_peer(void *p);
