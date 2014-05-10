@@ -56,6 +56,16 @@ void init_peer(peerdata *my_peer,int pos)
     memcpy(peers_pool[pos].ip,my_peer->ip,strlen(my_peer->ip));
     peers_pool[pos].ip[strlen(my_peer->ip)] = '\0';
 }
+int find_in_poor(peerdata *my_peer)
+{
+    int i;
+    for(i=0;i<MAXPEERS;i++)
+    {
+        if(peers_pool[i].used == 1 && strcmp(peers_pool[i].ip,my_peer->ip) == 0 && peers_pool[i].port == my_peer->port)
+            return -1;
+    }
+    return 1;
+}
 
 int main(int argc, char **argv)
 {
@@ -197,11 +207,14 @@ int main(int argc, char **argv)
             printf("Peer ip: %s\n",g_tracker_response->peers[i].ip);
             printf("Peer port: %d\n",g_tracker_response->peers[i].port);
             //为每个新增的peer创建线程
+            int flag = find_in_poor(&(g_tracker_response->peers[i]));
+            if(flag < 0)
+                continue;
             int num = alloc_peer();
             init_peer(&(g_tracker_response->peers[i]),num);
             //printf("11\n");
             //char *hehe = (char *)malloc(60);
-            printf("num is %d\n",num);
+            //printf("num is %d\n",num);
             if(strcmp(g_tracker_response->peers[i].ip,g_my_ip) != 0)
             {
                 pthread_t temp_thread1;
@@ -209,9 +222,10 @@ int main(int argc, char **argv)
             }
             //printf("pthread error_no is %d\n",error_no);
         }
-
+        //printf("I will sleep %d\n",g_tracker_response->interval);
         // 必须等待td->interval秒, 然后再发出下一个GET请求
-        int ret_sleep = sleep(g_tracker_response->interval);
+        //int ret_sleep = sleep(g_tracker_response->interval);
+        int ret_sleep = sleep(10);
         if(ret_sleep != 0)
             break;
     }

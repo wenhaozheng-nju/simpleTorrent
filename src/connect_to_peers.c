@@ -54,6 +54,7 @@ void *connect_to_peer(void *p){
     printf("msglen is %d\n",msglen);
     if(mypeer->status == 0){
         send(mypeer->sockfd, shkhdmsg, msglen, 0);
+        mypeer->status = 1;
     } 
     printf("11\n");
     free(shkhdmsg);

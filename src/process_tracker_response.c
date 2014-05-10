@@ -195,9 +195,9 @@ tracker_data* get_tracker_data(char* data, int len)
         if(!strncmp(ben_res->val.d[i].key,"peers",strlen("peers")))
         {
             be_node* peer_list = ben_res->val.d[i].val;
-            printf("peer list type is %d\n",peer_list->type);
-            printf("peer_list name is %s\n",peer_list->val.s);
-            printf("peer list type is %d\n",peer_list->length);
+            //printf("peer list type is %d\n",peer_list->type);
+            //printf("peer_list name is %s\n",peer_list->val.s);
+            //printf("peer list type is %d\n",peer_list->length);
             char *peer_list_start = peer_list->val.s;
             int len = peer_list->length;
             int num_of_peers = 0;
@@ -212,12 +212,12 @@ tracker_data* get_tracker_data(char* data, int len)
                 exit(-1);
             }
             ret->numpeers = num_of_peers;
-            printf("num_of_peers is %d\n",num_of_peers);
+            //printf("num_of_peers is %d\n",num_of_peers);
             ret->peers = (peerdata*)malloc(num_of_peers*sizeof(peerdata));
             int k;
             for(k=0; k<num_of_peers; k++)
             {
-                printf("loop times is %d\n",k);
+                //printf("loop times is %d\n",k);
                 peerdata *temp_peer = &(ret->peers[k]);
                 //ip
                 int *ip_val = (int *)(peer_list->val.s);
@@ -227,7 +227,7 @@ tracker_data* get_tracker_data(char* data, int len)
                 temp_peer->ip = (char *)malloc(strlen(ip_addr)+1);
                 strcpy(temp_peer->ip,ip_addr);
                 peer_list->val.s += 4;
-                printf("ip is %s\n",ret->peers[k].ip);
+                //printf("ip is %s\n",ret->peers[k].ip);
                 //peer id
                 if(strcmp(ip_addr,g_my_ip) == 0)
                 {
@@ -242,13 +242,14 @@ tracker_data* get_tracker_data(char* data, int len)
                 unsigned short int *temp_port = (unsigned short int *)(peer_list->val.s);
                 temp_peer->port = ntohs(*temp_port);
                 peer_list->val.s += 2;
-                printf("port is %d\n",ret->peers[k].port);
+                //printf("port is %d\n",ret->peers[k].port);
             }
             peer_list->val.s = peer_list_start;
             //get_peers(ret,my_list);
         }
     }
-    printf("ben_res type is %d\n",ben_res->type);
+    //printf("ben_res type is %d\n",ben_res->type);
+    
     be_free(ben_res);
     return ret;
 }

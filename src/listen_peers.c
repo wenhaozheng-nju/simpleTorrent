@@ -2,17 +2,15 @@
 #include "btdata.h"
 
 void *listen_peers(void *p){
-    printf("enter listen_peer in port :%d\n",g_peerport);
     int listenfd = make_listen_port(g_peerport);
-    printf("listenfd is %d\n",listenfd);
     while(1){
         struct sockaddr_in cliaddr;
         int clilen = sizeof(cliaddr);
         int sockfd = accept(listenfd, (struct sockaddr*)&cliaddr, &clilen);
-        printf("have accept :%d\n",sockfd);
         char *ip = (char*)malloc(16*sizeof(char));
         strcpy(ip, inet_ntoa(cliaddr.sin_addr));
         int port = cliaddr.sin_port;
+        printf("\033[31m""I have listen %s:%d\n""\033[m",ip,port);
         int i = 0;
         for(; i < MAXPEERS; i ++){
             peer_t *ptr = &peers_pool[i];
