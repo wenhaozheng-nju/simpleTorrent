@@ -18,7 +18,7 @@
 #include "btdata.h"
 #include "util.h"
 #include "sha1.h"
-#include <sys/stat.h>  
+#include <sys/stat.h>
 
 #define DATA_PATH "./data/"
 
@@ -31,11 +31,32 @@ int *new_file(torrentmetadata_t *meta_tree,char *name)
     fclose(filename);
     int *ret = (int *)malloc(sizeof(int) * meta_tree->num_pieces);
     int i;
-    for(i=0;i<meta_tree->num_pieces;i++)
+    for(i=0; i<meta_tree->num_pieces; i++)
     {
         ret[i] = 0;
     }
     return ret;
+}
+
+int SHA_cmp(unsigned *Message_Digest,char *pieces)
+{
+    int count = 0;
+    int i;
+    for(i=0; i<5; i++)
+    {
+        unsigned info = Message_Digest[i];
+        char *sub_info =(char *)&info;
+        int j;
+        for(j=0; j<4; j++)
+        {
+            //printf("pieces is %X and sub_info is %X\n",pieces[count],sub_info[j]);
+            if(pieces[count++] != sub_info[j])
+            {
+                return -1;
+            }
+        }
+    }
+    return 0;
 }
 
 int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
@@ -43,7 +64,7 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
     meta_tree->single_or_muti = 0;       //单文件解析
     if(meta_tree->single_or_muti == 0)
     {
-        printf("file name is %s\n",meta_tree->name);
+        //printf("file name is %s\n",meta_tree->name);
         char *file_path = (char *)malloc(strlen(meta_tree->name) + 1);
         memset(file_path,0,strlen(meta_tree->name) + 1);
         //strcat(file_path,DATA_PATH);
@@ -55,10 +76,10 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
             return new_file(meta_tree,file_path);
         }
         int n_file_len = statbuf.st_size;
-            printf("n_file_len is %d and length is %d\n",n_file_len,meta_tree->length);  
+        //printf("n_file_len is %d and length is %d\n",n_file_len,meta_tree->length);
         if(n_file_len != meta_tree->length)
         {
-            printf("n_file_len is %d and length is %d\n",n_file_len,meta_tree->length);  
+            //printf("n_file_len is %d and length is %d\n",n_file_len,meta_tree->length);
             *num_piece = meta_tree->num_pieces;
             return new_file(meta_tree,file_path);
         }
@@ -74,8 +95,8 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
         char *buf = (char *)malloc(sizeof(char)*meta_tree->piece_len);
         int *ret = (int *)malloc(sizeof(int) * meta_tree->num_pieces);
         char *tmp_pieces = meta_tree->pieces;
-        printf("piece_len is %d\n",meta_tree->piece_len);
-        for(i=0;i<*num_piece;i++)
+        //printf("piece_len is %d\n",meta_tree->piece_len);
+        for(i=0; i<*num_piece; i++)
         {
             memset(buf,0,meta_tree->piece_len);
             ret[i] = 0;               //初始化分片信息
@@ -85,7 +106,16 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
                 SHA1Context sha;
                 SHA1Reset(&sha);
                 SHA1Input(&sha,(const unsigned char *)buf,len);
-                if(strncmp((char *)sha.Message_Digest,tmp_pieces,20) == 0)
+                if(!SHA1Result(&sha))
+                {
+                    printf("failure\n");
+                }
+                int k;
+                for(k=0; k<5; k++)
+                {
+                    sha.Message_Digest[k] = htonl(sha.Message_Digest[k]);
+                }
+                if(SHA_cmp(sha.Message_Digest,tmp_pieces) == 0 )
                 {
                     ret[i] = 1;
                 }
@@ -96,12 +126,17 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
                 fread(buf,1,meta_tree->piece_len,data_file);
                 SHA1Context sha;
                 SHA1Reset(&sha);
-                SHA1Input(&sha,(const unsigned char *)buf,meta_tree->piece_len);         
+                SHA1Input(&sha,(const unsigned char *)buf,meta_tree->piece_len);
+                if(!SHA1Result(&sha))
+                {
+                    printf("failure\n");
+                }
                 int k;
-                for(k=0;k<5;k++)
+                for(k=0; k<5; k++)
                 {
                     sha.Message_Digest[k] = htonl(sha.Message_Digest[k]);
                 }
+                /*
                 printf("SHA1:");
                 for(k=0;k<5;k++)
                 {
@@ -113,7 +148,8 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
                     printf("%X ",(unsigned char)tmp_pieces[k]);
                 }
                 printf("\n");
-                if(strncmp((char *)sha.Message_Digest,tmp_pieces,20) == 0 )
+                */
+                if(SHA_cmp(sha.Message_Digest,tmp_pieces) == 0 )
                 {
                     ret[i] = 1;
                 }
@@ -128,7 +164,7 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
     }
     else
     {
-        
+
     }
     return NULL;
 }
