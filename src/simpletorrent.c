@@ -66,6 +66,17 @@ int find_in_poor(peerdata *my_peer)
     }
     return 1;
 }
+void tracker_free(tracker_data *t)
+{
+    peerdata *p = t->peers;
+    int i;
+    for(i=0;i<t->numpeers;i++)
+    {
+        free(p[i].ip);
+    }
+    free(p);
+    free(t);
+}
 
 int main(int argc, char **argv)
 {
@@ -225,6 +236,7 @@ int main(int argc, char **argv)
         //printf("I will sleep %d\n",g_tracker_response->interval);
         // 必须等待td->interval秒, 然后再发出下一个GET请求
         //int ret_sleep = sleep(g_tracker_response->interval);
+        tracker_free(g_tracker_response);
         int ret_sleep = sleep(10);
         if(ret_sleep != 0)
             break;
