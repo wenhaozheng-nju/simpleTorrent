@@ -5,24 +5,24 @@
 
 void sendshkhdmsg(int sockfd){
     printf("\033[34m""I will send shkhdmsg to somebody\n""\033[m");
-    unsigned char shkhdmsg1[HANDSHAKE_LEN];
+    unsigned char *shkhdmsg1;
     unsigned char *current;
     int msglen = 0;
-    printf("00\n");
-    //shkhdmsg1 = (unsigned char* )malloc(HANDSHAKE_LEN);
-    printf("11\n");
+    //printf("00\n");
+    shkhdmsg1 = (unsigned char* )malloc(HANDSHAKE_LEN);
+    //printf("11\n");
     current = shkhdmsg1;
     int pstrlen = strlen(BT_PROTOCOL);
     memcpy(current, (unsigned char*)&pstrlen, sizeof(int));
     current += sizeof(int);
-    printf("22\n");
+    //printf("22\n");
     strncpy(current, BT_PROTOCOL, pstrlen);
     current += pstrlen;
 
     memset(current, 0, 8);
     current += 8;
 
-    printf("msglen is %d\n",current-shkhdmsg1); 
+    //printf("msglen is %d\n",current-shkhdmsg1); 
     int i = 0;
     for(; i < 5; i ++){
         int j = 0;
@@ -32,7 +32,7 @@ void sendshkhdmsg(int sockfd){
             *current++ = p[j];
         }
     }
-    printf("msglen is %d\n",current-shkhdmsg1); 
+    //printf("msglen is %d\n",current-shkhdmsg1); 
     for(i = 0; i < 20; i ++){
         //current += sprintf(current, "%02x", (unsigned char)g_my_id[i]);
         *current = g_my_id[i];
@@ -40,10 +40,10 @@ void sendshkhdmsg(int sockfd){
     }
 
     msglen = current - shkhdmsg1;
-    printf("msglen is %d\n",msglen);
+    //printf("msglen is %d\n",msglen);
     send(sockfd, shkhdmsg1, msglen, 0);
-    //free(shkhdmsg1);
-    //shkhdmsg1 = NULL;
+    free(shkhdmsg1);
+    shkhdmsg1 = NULL;
     current = NULL;
 }
 
@@ -87,6 +87,7 @@ void *recv_from_peer(void *p){
             if(n<=0)
                 break;
             int i = 0, flag = 1;
+            unsigned char *buffer_temp = buffer;
             for(; i < 5; i ++){
                 int j = 0;
                 int part = reverse_byte_orderi(g_infohash[i]);
@@ -101,6 +102,7 @@ void *recv_from_peer(void *p){
                     buffer ++;
                 }
             }
+            buffer = buffer_temp;
             if(flag == 1){
                 memset(buffer, 0, BUFSIZE);
                 n = recv(sockfd, buffer, 20, 0);

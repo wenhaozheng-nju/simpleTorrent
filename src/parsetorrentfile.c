@@ -77,8 +77,8 @@ torrentmetadata_t* parsetorrentfile(char* filename)
     int j;
     if(!strncmp(ben_res->val.d[i].key,"announce",strlen("announce")))
     {
-	  ret->announce = (char*)malloc(strlen(ben_res->val.d[i].val->val.s)*sizeof(char)+1);
-	  memset(ret->announce,0,strlen(ben_res->val.d[i].val->val.s)*sizeof(char)+1);
+	  ret->announce = (char*)malloc( (strlen(ben_res->val.d[i].val->val.s) + 1) *sizeof(char));
+	  memset(ret->announce,0,strlen(ben_res->val.d[i].val->val.s) + 1);
       int pos = strlen(ben_res->val.d[i].val->val.s);
 	  memcpy(ret->announce,ben_res->val.d[i].val->val.s,strlen(ben_res->val.d[i].val->val.s));
       printf("origin announce last byte is : %x\n",ret->announce[pos]);

@@ -9,8 +9,8 @@ void *listen_peers(void *p)
         struct sockaddr_in cliaddr;
         int clilen = sizeof(cliaddr);
         int sockfd = accept(listenfd, (struct sockaddr*)&cliaddr, &clilen);
-        char *ip = (char*)malloc(16*sizeof(char));
-        memset(ip,0,16);
+        char *ip = (char*)malloc(17*sizeof(char));
+        memset(ip,0,17);
         strcpy(ip, inet_ntoa(cliaddr.sin_addr));
         int port = cliaddr.sin_port;
         printf("\033[31m""I have listen %s:%d\n""\033[m",ip,port);

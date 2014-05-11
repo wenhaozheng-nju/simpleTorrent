@@ -22,7 +22,7 @@ void *connect_to_peer(void *p){
     unsigned char *current;
     int msglen = 0;
 
-    shkhdmsg = (char*)malloc(HANDSHAKE_LEN * sizeof(char));
+    shkhdmsg = (char*)malloc((HANDSHAKE_LEN +1) * sizeof(char));
     current = shkhdmsg;
 
     int pstrlen = strlen(BT_PROTOCOL);
