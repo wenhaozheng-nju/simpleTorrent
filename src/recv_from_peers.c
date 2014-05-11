@@ -8,21 +8,17 @@ void sendshkhdmsg(int sockfd){
     unsigned char *shkhdmsg1;
     unsigned char *current;
     int msglen = 0;
-    //printf("00\n");
     shkhdmsg1 = (unsigned char* )malloc(HANDSHAKE_LEN);
-    //printf("11\n");
     current = shkhdmsg1;
     int pstrlen = strlen(BT_PROTOCOL);
     memcpy(current, (unsigned char*)&pstrlen, sizeof(int));
     current += sizeof(int);
-    //printf("22\n");
     strncpy(current, BT_PROTOCOL, pstrlen);
     current += pstrlen;
 
     memset(current, 0, 8);
     current += 8;
 
-    //printf("msglen is %d\n",current-shkhdmsg1); 
     int i = 0;
     for(; i < 5; i ++){
         int j = 0;
@@ -32,15 +28,12 @@ void sendshkhdmsg(int sockfd){
             *current++ = p[j];
         }
     }
-    //printf("msglen is %d\n",current-shkhdmsg1); 
     for(i = 0; i < 20; i ++){
-        //current += sprintf(current, "%02x", (unsigned char)g_my_id[i]);
         *current = g_my_id[i];
         current ++;
     }
 
     msglen = current - shkhdmsg1;
-    //printf("msglen is %d\n",msglen);
     send(sockfd, shkhdmsg1, msglen, 0);
     free(shkhdmsg1);
     shkhdmsg1 = NULL;
@@ -65,7 +58,6 @@ void *recv_from_peer(void *p){
         memset(buffer, 0, BUFSIZE);
         printf("now I waiting recv\n");
         int n = recv(sockfd, buffer, 4, 0);
-        printf("\033[31m""recv peer wire proto len is %d\n""\033[m" , n);
         if(n <= 0)
             break;
         int len = *(int*)buffer;
@@ -74,14 +66,12 @@ void *recv_from_peer(void *p){
         n = recv(sockfd, buffer, len, 0);
         if(n<=0)
             break;
-        printf("buffer is %s,and len is %d\n",buffer,len);
         if(len == 19 && strcmp(buffer, BT_PROTOCOL) == 0){
             //握手报文
             memset(buffer, 0, BUFSIZE);
             n = recv(sockfd, buffer, 8, 0);
             if(n<=0)
                 break;
-
             memset(buffer, 0, BUFSIZE);
             n = recv(sockfd, buffer, 20, 0);
             if(n<=0)
@@ -93,9 +83,7 @@ void *recv_from_peer(void *p){
                 int part = reverse_byte_orderi(g_infohash[i]);
                 unsigned char *p = (unsigned char*)&part;
                 for(; j < 4; j ++){
-                    printf("in %d:buffer is %x and p is %x\n",j,*buffer,p[j]);
                     if(*buffer != p[j]){
-                        //printf("buffer is %c,and j is %d\n",*buffer,j);
                         flag = 0;
                         break;
                     }
@@ -118,20 +106,69 @@ void *recv_from_peer(void *p){
                     my_peer->status = 2;
                 }
                 printf("shake hands succeed\n");
+                sendBitField(my_peer->sockfd);
+                pthread_t thread;
+                pthread_create(&thread, NULL, check_and_keepalive, (void*)k);
             }
             else
             {
-                printf("flag is 0");
+                perror("torrent file dismatched\n");
+                exit(-1);
             }
         }
         else{
             //其他类型
+            if(len == 0){
+                //keepalive
+                my_peer->alive = 1;
+            }
+            else{
+                unsigned char id = buffer[0];
+                switch(id){
+                    case 0:{
+                    //choke
+                    break;}
+                    case 1:{
+                    //unchoke
+                    break;}
+                    case 2:{
+                    //interested
+                    break;}
+                    case 3:{
+                    //not interested
+                    break;}
+                    case 4:{
+                    //have
+                    break;}
+                    case 5:{
+                        //bitfield
+                        int pNum = len -1;
+                        my_peer->piecesInfo = (int*)malloc(pNum * sizeof(int));
+                        int i = 1;
+                        for(; i <= pNum; i ++){
+                            my_peer->piecesInfo[i - 1] = buffer[i];
+                        }
+                        //other operation
+                    break;}
+                    case 6:{
+                    //request
+                    break;}
+                    case 7:{
+                    //piece
+                    break;}
+                    case 8:{
+                    //cancel
+                    break;}
+                }
+            }
         }
     }
     free(buffer);
     pthread_mutex_lock(&my_peer->sock_mutex);
-    close(sockfd);
-    my_peer->sockfd = -1;
-    my_peer->status = 0;
+    if(my_peer->sockfd > 0){
+        close(sockfd);
+        my_peer->sockfd = -1;
+        my_peer->status = 0;
+    }
     pthread_mutex_unlock(&my_peer->sock_mutex);
 }

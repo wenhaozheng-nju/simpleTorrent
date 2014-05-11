@@ -85,13 +85,16 @@ typedef struct _peer_t {
   int port;
   char* ip; // Null终止
   int status;
+  int alive;
   int sockfd;
   int choking;        // 作为上传者, 阻塞远端peer
   int interested;     // 远端peer对我们的分片有兴趣
   int choked;         // 作为下载者, 我们被远端peer阻塞
   int have_interest;  // 作为下载者, 对远端peer的分片有兴趣
-  char name[20]; 
+  char name[20];
+  int *piecesInfo;
   pthread_mutex_t sock_mutex;
+  pthread_mutex_t alive_mutex;
 } peer_t;
 
 /**************************************
@@ -106,7 +109,7 @@ int g_done; // 表明程序是否应该终止
 
 torrentmetadata_t* g_torrentmeta;
 int piecesNum;
-int *pieces_info;
+int *piecesInfo;
 char* g_filedata;      // 文件的实际数据
 int g_filelen;
 int g_num_pieces;
