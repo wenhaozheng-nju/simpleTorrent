@@ -68,4 +68,7 @@ void *listen_peers(void *p);
 //从其他peer接收报文
 void *recv_from_peer(void *p);
 
+//返回种子分片信息
+int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece);
+
 #endif
