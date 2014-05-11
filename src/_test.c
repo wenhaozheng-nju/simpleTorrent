@@ -45,6 +45,7 @@ main ( int argc, char **argv )
     printf("hehe\n");
     int *flag_piece = parse_data_file(g_torrentmeta,&num);
     int i;
+    printf("xixi\n");
     for(i=0;i<num;i++)
     {
         printf("the %d piece is %d\n",i,flag_piece[i]);
