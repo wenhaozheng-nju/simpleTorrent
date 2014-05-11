@@ -32,14 +32,21 @@ typedef struct _tracker_response {
 
 // 元信息文件中包含的数据
 typedef struct _torrentmetadata {
-  int info_hash[5]; // torrent的info_hash值(info键对应值的SHA1哈希值)
-  char* announce; // tracker的URL
-  int length;     // 文件长度, 以字节为单位
-  char* name;     // 文件名
-  int piece_len;  // 每一个分片的字节数
-  int num_pieces; // 分片数量(为方便起见)
-  char* pieces;   // 针对所有分片的20字节长的SHA1哈希值连接而成的字符串
+   
+    int info_hash[5]; // torrent的info_hash值(info键对应值的SHA1哈希值)
+    char* announce; // tracker的URL
+    int length;     // 文件长度, 以字节为单位
+    char* name;     // 文件名
+    int piece_len;  // 每一个分片的字节数
+    int num_pieces; // 分片数量(为方便起见)
+    char* pieces;   // 针对所有分片的20字节长的SHA1哈希值连接而成的字符串
+    char single_or_muti;
 } torrentmetadata_t;
+
+typedef struct _file_array{
+    int offset;
+    char *name;
+}file_array;
 
 // 包含在announce url中的数据(例如, 主机名和端口号)
 typedef struct _announce_url_t {
@@ -98,6 +105,8 @@ char g_my_id[20];
 int g_done; // 表明程序是否应该终止
 
 torrentmetadata_t* g_torrentmeta;
+int piecesNum;
+int *pieces_info;
 char* g_filedata;      // 文件的实际数据
 int g_filelen;
 int g_num_pieces;
