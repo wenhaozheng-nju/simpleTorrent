@@ -87,7 +87,7 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
         //fseek(data_file,0,SEEK_END);
         //printf("11\n");
         my_file_array = (file_array *)malloc(1*sizeof(file_array));
-        my_file_array->offset = 0;
+        my_file_array->length = 0;
         my_file_array->name = file_path;
         *num_piece = meta_tree->num_pieces;
         int len = meta_tree->length;
