@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
+#include <assert.h>
 
 #include "btdata.h"
 #include "bencode.h"

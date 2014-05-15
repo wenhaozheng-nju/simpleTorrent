@@ -30,6 +30,12 @@ typedef struct _tracker_response {
   char* data;     // B编码的字符串
 } tracker_response;
 
+typedef struct _sub_file{
+    int length;
+    char *path;
+    struct _sub_file* next;
+}sub_file;
+
 // 元信息文件中包含的数据
 typedef struct _torrentmetadata {
    
@@ -41,6 +47,7 @@ typedef struct _torrentmetadata {
     int num_pieces; // 分片数量(为方便起见)
     char* pieces;   // 针对所有分片的20字节长的SHA1哈希值连接而成的字符串
     char single_or_muti;
+    sub_file* head_sub_file;    //只有当single_or_muti为1的时候这个指针才有效
 } torrentmetadata_t;
 
 typedef struct _file_array{
