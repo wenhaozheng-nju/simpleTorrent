@@ -96,6 +96,7 @@ torrentmetadata_t* parsetorrentfile(char* filename)
                 exit(-3);
             }
             idict = ben_res->val.d[i].val->val.d;
+            ret->single_or_muti = 0;
             // 检查这个字典的键
             for(j=0; idict[j].key != NULL; j++)
             {
@@ -147,8 +148,8 @@ torrentmetadata_t* parsetorrentfile(char* filename)
                             current->next = my_sub_file;
                             ret->count++;
                         }
-
                     }
+                    filled ++;
                 }
                 if(!strncmp(idict[j].key,"length",strlen("length")))
                 {

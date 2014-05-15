@@ -77,4 +77,7 @@ void sendBitField(int sockfd);
 
 //检查和保持alive
 void *check_and_keepalive(void *p);
+
+void buffer2file(int index,int begin,int length,char *buf);
+void file2buffer(int index,int begin,int length,char *buf);
 #endif
