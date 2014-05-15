@@ -271,11 +271,10 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
     else
     {
         my_file_array = (file_array *)malloc(sizeof(file_array)*meta_tree->count);
-        meta_tree->length = 0;
+        //meta_tree->length = 0;
         char *directory = (char *)malloc(strlen(meta_tree->name)+1);
         memset(directory,0,strlen(meta_tree->name)+1);
-        memcpy(directory,0,strlen(meta_tree->name));
-        printf("11\n");
+        memcpy(directory,meta_tree->name,strlen(meta_tree->name));
         sub_file *current = meta_tree->head_sub_file;
         int no_file_count = 0;
         int i;
@@ -302,7 +301,7 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
                     no_file_count++;
                 }
             }
-            meta_tree->length += current->length;
+            //meta_tree->length += current->length;
             current = current->next;
         }
         if(no_file_count == meta_tree->count)
@@ -320,6 +319,7 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
         char *buf = (char *)malloc(sizeof(char)*meta_tree->piece_len);
         int *ret = (int *)malloc(sizeof(int) * meta_tree->num_pieces);
         char *tmp_pieces = meta_tree->pieces;
+        *num_piece = meta_tree->num_pieces;
         int offset = 0;
         for(i=0; i<meta_tree->num_pieces; i++)
         {
@@ -351,7 +351,7 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
                 read_buf(buf,offset,meta_tree->piece_len);
                 SHA1Context sha;
                 SHA1Reset(&sha);
-                SHA1Input(&sha,(const unsigned char *)buf,len);
+                SHA1Input(&sha,(const unsigned char *)buf,meta_tree->piece_len);
                 if(!SHA1Result(&sha))
                 {
                     printf("failure\n");

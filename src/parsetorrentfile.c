@@ -105,6 +105,7 @@ torrentmetadata_t* parsetorrentfile(char* filename)
                     ret->single_or_muti = 1;
                     ret->head_sub_file = NULL;
                     ret->count = 0;
+                    ret->length = 0;
                     if(idict[j].val->type != BE_LIST)
                     {
                         perror("Expected a list type\n");
@@ -148,6 +149,7 @@ torrentmetadata_t* parsetorrentfile(char* filename)
                             current->next = my_sub_file;
                             ret->count++;
                         }
+                        ret->length += my_sub_file->length;
                     }
                     filled ++;
                 }
@@ -170,12 +172,14 @@ torrentmetadata_t* parsetorrentfile(char* filename)
                 }
                 if(!strncmp(idict[j].key,"pieces",strlen("pieces")))
                 {
+                    printf("parse piece\n");
                     int num_pieces = ret->length/ret->piece_len;
                     if(ret->length % ret->piece_len != 0)
                         num_pieces++;
                     ret->pieces = (char*)malloc(num_pieces*20);
                     memcpy(ret->pieces,idict[j].val->val.s,num_pieces*20);
                     ret->num_pieces = num_pieces;
+                    printf("num_pieces is %d\n",ret->num_pieces);
                     filled++;
                 }
 
