@@ -68,6 +68,7 @@ void *check_and_keepalive(void *p){
             if(peers_pool[k].alive == 0){
                 pthread_mutex_lock(&peers_pool[k].sock_mutex);
                 if(peers_pool[k].sockfd > 0){
+                    printf("check_and_keepalive close %d\n",peers_pool[k].sockfd);
                     close(peers_pool[k].sockfd);
                     peers_pool[k].sockfd = -1;
                     peers_pool[k].status = 0;
@@ -110,17 +111,17 @@ void sendRequest(int k){
             printf("22222\n");
 
             int len = 13;
-            strncpy(buffer, (char*)&len, 4);
+            memcpy(buffer, (char*)&len, sizeof(int));
             buffer += sizeof(int);
             
-            *buffer ++ = 6;
+            *buffer ++ = (unsigned char)6;
             printf("33333\n");
 
             int index = requestPiece;
-            strncpy(buffer, (char*)&index, 4);
+            memcpy(buffer, (char*)&index, sizeof(int));
             buffer += sizeof(int);
             int begin = j * 65536;
-            strncpy(buffer, (char*)&begin, 4);
+            memcpy(buffer, (char*)&begin, sizeof(int));
             buffer += sizeof(int);  
             int len1;
             printf("44444\n");
@@ -145,11 +146,10 @@ void sendRequest(int k){
                     }
                 }
             }
-            strncpy(buffer, (char*)&len1, 4);
-                
+            memcpy(buffer, (char*)&len1, sizeof(int));    
             printf("Now I will send Request pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
             printf("index is %d, begin is %d, len is %d\n",index, begin, len1);
-
+            printf("send to %d in sendRequest\n",my_peer->sockfd);
             int n = send(my_peer->sockfd, temp_buffer, sizeof(int)*4 + sizeof(char), 0);
             printf("n is %d\n", n);
             free(temp_buffer);

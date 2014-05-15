@@ -9,6 +9,7 @@ void *listen_peers(void *p)
         struct sockaddr_in cliaddr;
         int clilen = sizeof(cliaddr);
         int sockfd = accept(listenfd, (struct sockaddr*)&cliaddr, &clilen);
+        printf("listen_peer accept sockfd : %d\n",sockfd);
         char *ip = (char*)malloc(17*sizeof(char));
         memset(ip,0,17);
         strcpy(ip, inet_ntoa(cliaddr.sin_addr));
@@ -44,6 +45,7 @@ void *listen_peers(void *p)
         }
         else
         {
+            printf("listen_peers close %d\n",sockfd);
             close(sockfd);
             sockfd = -1;
         }

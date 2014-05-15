@@ -61,7 +61,7 @@ void init_peer(peerdata *my_peer,int pos)
 int find_in_poor(peerdata *my_peer)
 {
     int i;
-    for(i=0;i<MAXPEERS;i++)
+    for(i=0; i<MAXPEERS; i++)
     {
         if(peers_pool[i].used == 1 && strcmp(peers_pool[i].ip,my_peer->ip) == 0 && peers_pool[i].port == my_peer->port)
             return -1;
@@ -72,7 +72,7 @@ void tracker_free(tracker_data *t)
 {
     peerdata *p = t->peers;
     int i;
-    for(i=0;i<t->numpeers;i++)
+    for(i=0; i<t->numpeers; i++)
     {
         free(p[i].ip);
     }
@@ -199,7 +199,7 @@ int main(int argc, char **argv)
 
         printf("Parsing tracker data\n");
         g_tracker_response = get_tracker_data(tmp2,tr->size);
-        /*  
+        /*
         if(tmp)
         {
             free(tmp2);
@@ -223,13 +223,15 @@ int main(int argc, char **argv)
             int flag = find_in_poor(&(g_tracker_response->peers[i]));
             if(flag < 0)
                 continue;
-            int num = alloc_peer();
-            init_peer(&(g_tracker_response->peers[i]),num);
             //printf("11\n");
             //char *hehe = (char *)malloc(60);
             //printf("num is %d\n",num);
+            printf("g_my_ip is %s\n",g_my_ip);
             if(strcmp(g_tracker_response->peers[i].ip,g_my_ip) != 0)
             {
+                printf("peers ip is %s\n",g_tracker_response->peers[i].ip);
+                int num = alloc_peer();
+                init_peer(&(g_tracker_response->peers[i]),num);
                 pthread_t temp_thread1;
                 pthread_create(&temp_thread1,NULL,connect_to_peer,(void *)num);
             }
