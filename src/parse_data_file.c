@@ -164,7 +164,16 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
     }
     else
     {
-
+        my_file_array = (file_array *)malloc(sizeof(file_array)*meta_tree->count);
+        char *directory = (char *)malloc(strlen(meta_tree->name)+1);
+        memset(directory,0,strlen(meta_tree->name)+1);
+        memcpy(directory,0,strlen(meta_tree->name));
+        sub_file *current = meta_tree->head_sub_file;
+        int i;
+        for(i=0;i<meta_tree->count;i++)
+        {
+            
+        }
     }
     return NULL;
 }

@@ -133,6 +133,7 @@ left	src/btdata.h	/^  int left;$/;"	m	struct:_tracker_request
 length	src/bencode.h	/^    int length;$/;"	m	struct:be_dict
 length	src/bencode.h	/^    int length;$/;"	m	struct:be_node
 length	src/btdata.h	/^    int length;     \/\/ 文件长度, 以字节为单位$/;"	m	struct:_torrentmetadata
+length	src/btdata.h	/^    int length;$/;"	m	struct:_file_array
 length	src/btdata.h	/^    int length;$/;"	m	struct:_sub_file
 listen_peers	src/listen_peers.c	/^void *listen_peers(void *p)$/;"	f
 main	src/_test.c	/^main ( int argc, char **argv )$/;"	f
@@ -148,7 +149,6 @@ new_file	src/parse_data_file.c	/^int *new_file(torrentmetadata_t *meta_tree,char
 next	src/btdata.h	/^    struct _sub_file* next;$/;"	m	struct:_sub_file	typeref:struct:_sub_file::_sub_file
 num_pieces	src/btdata.h	/^    int num_pieces; \/\/ 分片数量(为方便起见)$/;"	m	struct:_torrentmetadata
 numpeers	src/btdata.h	/^  int numpeers;$/;"	m	struct:_tracker_data
-offset	src/btdata.h	/^    int offset;$/;"	m	struct:_file_array
 parse_announce_url	src/parse_announce_url.c	/^announce_url_t* parse_announce_url(char* announce)$/;"	f
 parse_data_file	src/parse_data_file.c	/^int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)$/;"	f
 parsetorrentfile	src/parsetorrentfile.c	/^torrentmetadata_t* parsetorrentfile(char* filename)$/;"	f

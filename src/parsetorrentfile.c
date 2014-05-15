@@ -103,6 +103,7 @@ torrentmetadata_t* parsetorrentfile(char* filename)
                 {
                     ret->single_or_muti = 1;
                     ret->head_sub_file = NULL;
+                    ret->count = 0;
                     if(idict[j].val->type != BE_LIST)
                     {
                         perror("Expected a list type\n");
@@ -117,7 +118,7 @@ torrentmetadata_t* parsetorrentfile(char* filename)
                         sub_file* my_sub_file = (sub_file *)malloc(sizeof(sub_file));
                         memset(my_sub_file,0,sizeof(sub_file));
                         int m;
-                        for(m=0;node_dict[m].key != NULL;m++)
+                        for(m=0; node_dict[m].key != NULL; m++)
                         {
                             if(!strncmp(node_dict[m].key,"length",strlen("length")))
                             {
@@ -134,13 +135,19 @@ torrentmetadata_t* parsetorrentfile(char* filename)
                         if(ret->head_sub_file == NULL)
                         {
                             ret->head_sub_file = my_sub_file;
+                            ret->count++;
                         }
-                        sub_file *current = ret->head_sub_file;
-                        while(current->next != NULL)
+                        else
                         {
-                            current = current->next;
+                            sub_file *current = ret->head_sub_file;
+                            while(current->next != NULL)
+                            {
+                                current = current->next;
+                            }
+                            current->next = my_sub_file;
+                            ret->count++;
                         }
-                        current->next = my_sub_file;
+
                     }
                 }
                 if(!strncmp(idict[j].key,"length",strlen("length")))

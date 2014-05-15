@@ -48,10 +48,11 @@ typedef struct _torrentmetadata {
     char* pieces;   // 针对所有分片的20字节长的SHA1哈希值连接而成的字符串
     char single_or_muti;
     sub_file* head_sub_file;    //只有当single_or_muti为1的时候这个指针才有效
+    int count;
 } torrentmetadata_t;
 
 typedef struct _file_array{
-    int offset;
+    int length;
     char *name;
 }file_array;
 
