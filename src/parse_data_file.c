@@ -38,7 +38,7 @@ void read_buf(char *buf,int offset,int data_len)
     }
     i--;
     FILE *filename = fopen(my_file_array[i].name,"r");
-    fseek(filename,my_file_array[i].length - cur_offset,SEEK_SET);
+    fseek(filename,cur_offset,SEEK_SET);
     if(my_file_array[i].length-cur_offset >= data_len)
     {
         printf("offset is %d\n",my_file_array[i].length-cur_offset);
