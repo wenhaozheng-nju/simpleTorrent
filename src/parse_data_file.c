@@ -170,9 +170,11 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
         memcpy(directory,0,strlen(meta_tree->name));
         sub_file *current = meta_tree->head_sub_file;
         int i;
-        for(i=0;i<meta_tree->count;i++)
+        for(i=0; i<meta_tree->count; i++)
         {
-            
+            assert(current != NULL);
+
+            current = current->next;
         }
     }
     return NULL;
