@@ -135,6 +135,7 @@ int *new_file(torrentmetadata_t *meta_tree,char *name)
     {
         ret[i] = 0;
     }
+    //printf("11\n");
     return ret;
 }
 int *create_file(char *name,int len)
@@ -179,6 +180,7 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
         if(stat(file_path,&statbuf) < 0)
         {
             *num_piece = meta_tree->num_pieces;
+            printf("file_path is %s\n",file_path);
             return new_file(meta_tree,file_path);
         }
         int n_file_len = statbuf.st_size;
