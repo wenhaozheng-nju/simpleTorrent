@@ -84,4 +84,5 @@ void file2buffer(int index,int begin,int length,char *buf);
 void sendRequest(int k);
 void sendPiece(int sockfd, int index, int begin, int len);
 void sendHave(int sockfd, int index);
+void destroy_peer(int pos);
 #endif

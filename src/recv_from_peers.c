@@ -6,7 +6,8 @@
 
 extern int errno;
 
-void sendshkhdmsg(int sockfd){
+void sendshkhdmsg(int sockfd)
+{
     printf("\033[34m""I will send shkhdmsg to somebody\n""\033[m");
     unsigned char *shkhdmsg1;
     unsigned char *current;
@@ -23,15 +24,18 @@ void sendshkhdmsg(int sockfd){
     current += 8;
 
     int i = 0;
-    for(; i < 5; i ++){
+    for(; i < 5; i ++)
+    {
         int j = 0;
         int part = reverse_byte_orderi(g_infohash[i]);
         unsigned char *p = (unsigned char*)&part;
-        for(; j < 4; j ++){
+        for(; j < 4; j ++)
+        {
             *current++ = p[j];
         }
     }
-    for(i = 0; i < 20; i ++){
+    for(i = 0; i < 20; i ++)
+    {
         *current = g_my_id[i];
         current ++;
     }
@@ -43,7 +47,8 @@ void sendshkhdmsg(int sockfd){
     current = NULL;
 }
 
-void *recv_from_peer(void *p){
+void *recv_from_peer(void *p)
+{
     int k =  (int)p;
     peer_t *my_peer = &peers_pool[k];
     if(peers_pool[k].used == 0)
@@ -58,18 +63,20 @@ void *recv_from_peer(void *p){
 
     unsigned char *buffer = (unsigned char*)malloc(BUFSIZE * sizeof(unsigned char));
 
-    while(1){
+    while(1)
+    {
         memset(buffer, 0, BUFSIZE);
         printf("now I waiting recv\n");
         n = recv(sockfd, buffer, 4, 0);
         if(n <= 0)
             break;
         int len = *(int*)buffer;
-        
+
         memset(buffer, 0, BUFSIZE);
         n = recv(sockfd, buffer, len, 0);
         if(n<=0)
             break;
+        /*
         if(len == 19 && strcmp(buffer, BT_PROTOCOL) == 0){
             //握手报文
             memset(buffer, 0, BUFSIZE);
@@ -103,9 +110,7 @@ void *recv_from_peer(void *p){
                 strncpy(my_peer->id, buffer, 20);
                 if(my_peer->status != 2){
                     if(my_peer->status == 0){
-                        int *f = (int *)malloc(455*sizeof(int));
                         sendshkhdmsg(my_peer->sockfd);
-                        free(f);
                     }
                     my_peer->status = 2;
                 }
@@ -119,98 +124,122 @@ void *recv_from_peer(void *p){
                 perror("torrent file dismatched\n");
                 exit(-1);
             }
+        }*/
+        if(len == 0)
+        {
+            //keepalive
+            printf("Now I recv keepalive pack from %s:%d\n", my_peer->ip, my_peer->port);
+            my_peer->alive = 1;
         }
-        else{
-            //其他类型
-            if(len == 0){
-                //keepalive
-                printf("Now I recv keepalive pack from %s:%d\n", my_peer->ip, my_peer->port);
-                my_peer->alive = 1;
+        else
+        {
+            unsigned char id = buffer[0];
+            switch(id)
+            {
+            case 0:
+            {
+                //choke
+                break;
             }
-            else{
-                unsigned char id = buffer[0];
-                switch(id){
-                    case 0:{
-                    //choke
-                    break;}
-                    case 1:{
-                    //unchoke
-                    break;}
-                    case 2:{
-                    //interested
-                    break;}
-                    case 3:{
-                    //not interested
-                    break;}
-                    case 4:{
-                        //have
-                        int index = *(int*)&buffer[1];
-                        my_peer->piecesInfo[index] = 1;
-                    break;}
-                    case 5:{
-                        //bitfield
-                        printf("Now I recv bitfield pack from %s:%d\n", my_peer->ip, my_peer->port);
-                        my_peer->piecesInfo = (int*)malloc(piecesNum * sizeof(int));
-                        int i = 1;
-                        for(; i <= piecesNum; i ++){
-                            my_peer->piecesInfo[i - 1] = buffer[i];
-                        }
-                        printf("%s:%d has pieces:", my_peer->ip, my_peer->port);
-                        for(i = 0; i < piecesNum; i ++){
-                            printf("%d ", my_peer->piecesInfo[i]);
-                        }
-                        printf("\n");
-                        //send interested
-                        //send request
-                        sendRequest(k);
-                    break;}
-                    case 6:{
-                        //request
-                        int index = *(int*)&buffer[1];
-                        int begin = *(int*)&buffer[5];
-                        int blocklen = *(int*)&buffer[9];
-                        sendPiece(my_peer->sockfd, index, begin, blocklen);
-                    break;}
-                    case 7:{
-                        //piece
-                        int index = *(int*)&buffer[1];
-                        int begin = *(int*)&buffer[5];
-                        int blocklen = len - sizeof(char) - sizeof(int)*2;
-                        buffer2file(index, begin, blocklen, buffer + 9);
-                        int subPieceNo = begin / 65536;
-                        assert(piecesInfo[index] == 1);
-                        isSubpiecesReceived[index][subPieceNo] = 1;
-                        int flag = 1;
-                        int m = 0;
-                        for(; m < subpiecesNum[index]; m ++){
-                            if(isSubpiecesReceived[index][m] == 0){
-                                flag = 0;
-                            }
-                        }
-                        if(flag == 1){
-                            sendHave(my_peer->sockfd, index);
-                            sendRequest(k);
-                        }
-                    break;}
-                    case 8:{
-                    //cancel
-                    break;}
+            case 1:
+            {
+                //unchoke
+                break;
+            }
+            case 2:
+            {
+                //interested
+                break;
+            }
+            case 3:
+            {
+                //not interested
+                break;
+            }
+            case 4:
+            {
+                //have
+                int index = *(int*)&buffer[1];
+                my_peer->piecesInfo[index] = 1;
+                break;
+            }
+            case 5:
+            {
+                //bitfield
+                printf("Now I recv bitfield pack from %s:%d\n", my_peer->ip, my_peer->port);
+                my_peer->piecesInfo = (int*)malloc(piecesNum * sizeof(int));
+                int i = 1;
+                for(; i <= piecesNum; i ++)
+                {
+                    my_peer->piecesInfo[i - 1] = buffer[i];
                 }
+                printf("%s:%d has pieces:", my_peer->ip, my_peer->port);
+                for(i = 0; i < piecesNum; i ++)
+                {
+                    printf("%d ", my_peer->piecesInfo[i]);
+                }
+                printf("\n");
+                //send interested
+                //send request
+                sendRequest(k);
+                break;
+            }
+            case 6:
+            {
+                //request
+                int index = *(int*)&buffer[1];
+                int begin = *(int*)&buffer[5];
+                int blocklen = *(int*)&buffer[9];
+                sendPiece(my_peer->sockfd, index, begin, blocklen);
+                break;
+            }
+            case 7:
+            {
+                //piece
+                int index = *(int*)&buffer[1];
+                int begin = *(int*)&buffer[5];
+                int blocklen = len - sizeof(char) - sizeof(int)*2;
+                buffer2file(index, begin, blocklen, buffer + 9);
+                int subPieceNo = begin / 65536;
+                assert(piecesInfo[index] == 1);
+                isSubpiecesReceived[index][subPieceNo] = 1;
+                int flag = 1;
+                int m = 0;
+                for(; m < subpiecesNum[index]; m ++)
+                {
+                    if(isSubpiecesReceived[index][m] == 0)
+                    {
+                        flag = 0;
+                    }
+                }
+                if(flag == 1)
+                {
+                    sendHave(my_peer->sockfd, index);
+                    sendRequest(k);
+                }
+                break;
+            }
+            case 8:
+            {
+                //cancel
+                break;
+            }
             }
         }
     }
     printf("recv n is %d\n", n);
-    if(n < 0){
+    if(n < 0)
+    {
         printf("errno is %d:%s\n", errno, strerror(errno));
     }
     free(buffer);
     printf("connect broke\n");
     printf("sockfd is %d\n",sockfd);
     pthread_mutex_lock(&my_peer->sock_mutex);
-    if(my_peer->sockfd > 0){
+    if(my_peer->sockfd > 0)
+    {
         close(sockfd);
-        my_peer->sockfd = -1;
-        my_peer->status = 0;
+        destroy_peer(k);
     }
     pthread_mutex_unlock(&my_peer->sock_mutex);
 }

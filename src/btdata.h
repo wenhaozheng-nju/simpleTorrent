@@ -9,8 +9,9 @@
  * 一些常量定义
 **************************************/
 
-#define HANDSHAKE_LEN 71  // peer握手消息的长度, 以字节为单位
+#define HANDSHAKE_LEN 68  // peer握手消息的长度, 以字节为单位
 #define BT_PROTOCOL "BitTorrent protocol"
+#define BT_PROTOCOL_LEN 19
 #define INFOHASH_LEN 20
 #define PEER_ID_LEN 20
 #define MAXPEERS 100
@@ -88,7 +89,7 @@ typedef struct _tracker_request {
 
 // 针对到一个peer的已建立连接, 维护相关数据
 typedef struct _peer_t {
-    int used;
+  int used;
   char id[21]; // 20用于null终止符
   int port;
   char* ip; // Null终止
@@ -105,6 +106,17 @@ typedef struct _peer_t {
   pthread_mutex_t alive_mutex;
 } peer_t;
 
+
+struct handshake_packet
+{
+    char len;
+    char name[BT_PROTOCOL_LEN];
+    char reserve[8];
+    char info_hash[20];
+    char peer_id[20];
+};
+
+
 /**************************************
  * 全局变量 
 **************************************/
@@ -119,6 +131,8 @@ torrentmetadata_t* g_torrentmeta;
 char* g_filedata;      // 文件的实际数据
 int g_filelen;
 int g_num_pieces;
+
+pthread_mutex_t g_mutex;
 
 char g_tracker_ip[16]; // tracker的IP地址, 格式为XXX.XXX.XXX.XXX(null终止)
 int g_tracker_port;
