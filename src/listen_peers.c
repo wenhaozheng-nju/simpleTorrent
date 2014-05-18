@@ -101,11 +101,10 @@ END:
             exit(-1);
         }
         printf("shake hands succeed\n");
-        sleep(5);           //等一会
-        //sendBitField(sockfd);
+        //sleep(10);           //等一会
+        sendBitField(sockfd);
         pthread_t thread_1;
         pthread_create(&thread_1, NULL, check_and_keepalive, (void*)i);
-        sendBitField(sockfd);
         break;
     }
     if(n<0)

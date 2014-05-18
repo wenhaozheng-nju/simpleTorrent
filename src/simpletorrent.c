@@ -69,7 +69,7 @@ void init_peer(peerdata *my_peer,int pos)
 void destroy_peer(int pos)
 {
     peers_pool[pos].port = 0;
-    free(peers_pool[pos].ip);
+    //free(peers_pool[pos].ip);
     peers_pool[pos].used = 0;
     peers_pool[pos].sockfd = -1;
     peers_pool[pos].status = 0;
@@ -131,6 +131,7 @@ int main(int argc, char **argv)
 
     g_torrentmeta = parsetorrentfile(argv[1]);
     memcpy(g_infohash,g_torrentmeta->info_hash,20);
+    piecesInfo = parse_data_file(g_torrentmeta,&piecesNum); 
 
     g_filelen = g_torrentmeta->length;
     g_num_pieces = g_torrentmeta->num_pieces;

@@ -117,6 +117,20 @@ struct handshake_packet
 };
 
 
+struct bit_flag
+{
+    char b1:1;
+    char b2:1;
+    char b3:1;
+    char b4:1;
+    char b5:1;
+    char b6:1;
+    char b7:1;
+    char b8:1;
+};
+
+typedef struct bit_flag bit_flag;
+
 /**************************************
  * 全局变量 
 **************************************/

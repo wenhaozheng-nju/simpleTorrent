@@ -61,7 +61,7 @@ void *recv_from_peer(void *p)
     int port = my_peer->port;
     int n;
 
-    unsigned char *buffer = (unsigned char*)malloc(BUFSIZE * sizeof(unsigned char));
+    unsigned char *buffer = (unsigned char*)malloc(BUFSIZE);
 
     while(1)
     {
@@ -69,13 +69,18 @@ void *recv_from_peer(void *p)
         printf("now I waiting recv\n");
         n = recv(sockfd, buffer, 4, 0);
         if(n <= 0)
+        {
+            printf("recv length error\n");
             break;
+        }
         int len = *(int*)buffer;
-
-        memset(buffer, 0, BUFSIZE);
-        n = recv(sockfd, buffer, len, 0);
-        if(n<=0)
+        len = ntohl(len);
+        if(len > BUFSIZE)
+        {
+            printf("\033[33m len is %d and ",len);
+            printf("len is bigger than BUFSIZE\n \033[m");
             break;
+        }
         /*
         if(len == 19 && strcmp(buffer, BT_PROTOCOL) == 0){
             //握手报文
@@ -133,6 +138,14 @@ void *recv_from_peer(void *p)
         }
         else
         {
+            printf("len is %d before recv buf\n",len);
+            n = recv(sockfd, buffer, len, 0);
+            if(n<=0)
+            {
+                printf("recv buffer error\n");
+                break;
+            }
+
             unsigned char id = buffer[0];
             switch(id)
             {
@@ -166,13 +179,38 @@ void *recv_from_peer(void *p)
             case 5:
             {
                 //bitfield
+                assert(len > 0);
                 printf("Now I recv bitfield pack from %s:%d\n", my_peer->ip, my_peer->port);
+                char *bit_8 = buffer+1;
+                int *bit_array = (int *)malloc(sizeof(int)*8*(len-1));
+                memset(bit_array,0,sizeof(int)*8*(len-1));
+                int i;
+                for(i=0; i<(len-1)*8; i++)
+                {
+                    if((*bit_8 & 0x80) != 0)
+                    {
+                        printf("hit ");
+                        bit_array[i] = 1;
+                    }
+                    else
+                        bit_array[i] = 0;
+                    *bit_8 = *bit_8 << 1;
+                    if((i+1) % 8 == 0)
+                        bit_8++;
+                }
+                assert((len-1)*8 >= piecesNum);
+                printf("piecesNum is %d\n",piecesNum);
                 my_peer->piecesInfo = (int*)malloc(piecesNum * sizeof(int));
-                int i = 1;
-                for(; i <= piecesNum; i ++)
+                memset(my_peer->piecesInfo,0,piecesNum*sizeof(int));
+                for(i=0; i<piecesNum; i++)
+                    my_peer->piecesInfo[i] = bit_array[i];
+                free(bit_array);
+                /*
                 {
                     my_peer->piecesInfo[i - 1] = buffer[i];
                 }
+                */
+
                 printf("%s:%d has pieces:", my_peer->ip, my_peer->port);
                 for(i = 0; i < piecesNum; i ++)
                 {
@@ -188,8 +226,11 @@ void *recv_from_peer(void *p)
             {
                 //request
                 int index = *(int*)&buffer[1];
+                index = ntohl(index);
                 int begin = *(int*)&buffer[5];
+                begin = ntohl(begin);
                 int blocklen = *(int*)&buffer[9];
+                blocklen = ntohl(blocklen);
                 sendPiece(my_peer->sockfd, index, begin, blocklen);
                 break;
             }

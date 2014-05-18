@@ -4,70 +4,97 @@
 
 extern int errno;
 
-void sendBitField(int sockfd){
-    piecesInfo = parse_data_file(g_torrentmeta, &piecesNum);
-    unsigned char *buffer = (unsigned char*)malloc(sizeof(int) + (1 + piecesNum) * sizeof(unsigned char));
-    memset(buffer, 0, sizeof(int) + (1 + piecesNum) * sizeof(unsigned char));
+void sendBitField(int sockfd)
+{
+    //piecesInfo = parse_data_file(g_torrentmeta, &piecesNum);
+    int bit_num = piecesNum / 8;
+    if(piecesNum % 8 != 0)
+        bit_num ++;
+    unsigned char *buffer = (unsigned char*)malloc(sizeof(int) + (1 + bit_num) * sizeof(unsigned char));
+    memset(buffer, 0, sizeof(int) + (1 + bit_num) * sizeof(unsigned char));
     unsigned char *temp_buffer = buffer;
 
-    int len = 1 + piecesNum;
-    strncpy(buffer, (char*)&len, 4);
+    int len = 1 + bit_num;     //1位type值
+    len = htonl(len);
+    printf("len is %x in sendBitField\n",len);
+    memcpy(buffer, (char*)&len, 4);
     buffer += sizeof(int);
 
     *buffer ++ = 5;
 
     int i = 0;
-    for(; i < piecesNum; i ++){
-        if(piecesInfo[i] == 1){
-            buffer[i] = 1;
+    char bit_8 = 0x80;
+    for(; i < piecesNum; i ++)
+    {
+        if(piecesInfo[i] == 1)
+        {
+            (*buffer) = (*buffer) | bit_8;
         }
-        else{
-            buffer[i] = 0;
+        bit_8 = bit_8 >> 1;
+        if((i+1) % 8 == 0)
+        {
+            buffer++;
+            bit_8 = 0x80;
         }
     }
+    printf("temp buffer is %x %x %x %x\n",temp_buffer[0],temp_buffer[1],temp_buffer[2],temp_buffer[3]);
 
+    //从这里开始我就看不懂在干什么了。。。
     subpiecesNum = (int *)malloc(sizeof(int) * piecesNum);
     isSubpiecesReceived = (int **)malloc(sizeof(int *) * piecesNum);
     printf("piece_len is %d\n", g_torrentmeta->piece_len);
-    for(i= 0; i < piecesNum; i ++){
+    for(i= 0; i < piecesNum; i ++)
+    {
         int temp;
-        if(i != piecesNum -1){
+        if(i != piecesNum -1)
+        {
             temp = g_torrentmeta->piece_len / 65536;
-            if(g_torrentmeta->piece_len % 65536 != 0){
+            if(g_torrentmeta->piece_len % 65536 != 0)
+            {
                 temp ++;
             }
         }
-        else{
+        else
+        {
             int piece_len = g_filelen % g_torrentmeta->piece_len;
-            if(piece_len == 0){
+            if(piece_len == 0)
+            {
                 piece_len = g_torrentmeta->piece_len;
             }
             temp = piece_len / 65536;
-            if(piece_len % 65536 != 0){
+            if(piece_len % 65536 != 0)
+            {
                 temp ++;
             }
         }
         subpiecesNum[i] = temp;
         isSubpiecesReceived[i] = (int *)malloc(sizeof(int) * temp);
         int j = 0;
-        for(; j < temp; j ++){
+        for(; j < temp; j ++)
+        {
             isSubpiecesReceived[i][j] = piecesInfo[i];
         }
     }
 
     printf("Now I will send BitField pack\n");
-    send(sockfd, temp_buffer, sizeof(int) + len * sizeof(char), 0);
+    send(sockfd, temp_buffer, sizeof(int) + ntohl(len) * sizeof(unsigned char), 0);
     free(temp_buffer);
 }
 
-void *check_and_keepalive(void *p){
+void *check_and_keepalive(void *p)
+{
+
     int k = (int)p;
-    while(1){
-        if(peers_pool[k].used == 1 && peers_pool[k].status >= 2) {
+    while(1)
+    {
+        if(peers_pool[k].used == 1 && peers_pool[k].status >= 2)
+        {
             pthread_mutex_lock(&peers_pool[k].alive_mutex);
-            if(peers_pool[k].alive == 0){
+            if(peers_pool[k].alive == 0)
+            {
                 pthread_mutex_lock(&peers_pool[k].sock_mutex);
-                if(peers_pool[k].sockfd > 0){
+                if(peers_pool[k].sockfd > 0)
+                {
                     printf("check_and_keepalive close %d\n",peers_pool[k].sockfd);
                     close(peers_pool[k].sockfd);
                     peers_pool[k].sockfd = -1;
@@ -76,89 +103,105 @@ void *check_and_keepalive(void *p){
                 pthread_mutex_unlock(&peers_pool[k].sock_mutex);
                 break;
             }
-            else{
+            else
+            {
                 int len = 0;
                 printf("Now I will send keepalive pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
-                send(peers_pool[k].sockfd, &len, sizeof(int), 0);
+                send(peers_pool[k].sockfd, (char *)&len, sizeof(int), 0);
             }
             peers_pool[k].alive = 0;
             pthread_mutex_unlock(&peers_pool[k].alive_mutex);
         }
         sleep(120);
     }
+
 }
 
-void sendRequest(int k){
+void sendRequest(int k)
+{
     printf("k is %d\n", k);
     peer_t* my_peer = &peers_pool[k];
     int i, requestPiece = -1;
-    for(i = 0; i < piecesNum; i ++){
-        if(piecesInfo[i] == 0 && my_peer->piecesInfo[i] == 1){
+    for(i = 0; i < piecesNum; i ++)
+    {
+        if(piecesInfo[i] == 0 && my_peer->piecesInfo[i] == 1)
+        {
             requestPiece = i;
             break;
         }
     }
     printf("requestPiece is %d\n", requestPiece);
-    if(requestPiece >= 0){
+    if(requestPiece >= 0)
+    {
         piecesInfo[requestPiece] = 1;
         int j;
         printf("subpiecesNum is %d\n", subpiecesNum[requestPiece]);
-        for(j = 0; j < subpiecesNum[requestPiece]; j ++){
-            printf("11111\n");
+        for(j = 0; j < subpiecesNum[requestPiece]; j ++)
+        {
             unsigned char *buffer = (char*)malloc(sizeof(int)*4 + sizeof(unsigned char));
             memset(buffer, 0, sizeof(int)*4 + sizeof(unsigned char));
             unsigned char *temp_buffer = buffer;
-            printf("22222\n");
 
             int len = 13;
+            len = htonl(len);
             memcpy(buffer, (char*)&len, sizeof(int));
             buffer += sizeof(int);
-            
-            *buffer ++ = (unsigned char)6;
-            printf("33333\n");
+            len = ntohl(len);
 
-            int index = requestPiece;
+            *buffer ++ = (unsigned char)6;
+
+            int index = htonl(requestPiece);
             memcpy(buffer, (char*)&index, sizeof(int));
             buffer += sizeof(int);
             int begin = j * 65536;
+            begin = htonl(begin);
             memcpy(buffer, (char*)&begin, sizeof(int));
-            buffer += sizeof(int);  
+            buffer += sizeof(int);
             int len1;
-            printf("44444\n");
-            if(j != subpiecesNum[requestPiece] - 1){
+            if(j != subpiecesNum[requestPiece] - 1)
+            {
                 len1 = 65536;
             }
-            else{
-                if(requestPiece != piecesNum - 1){
+            else
+            {
+                if(requestPiece != piecesNum - 1)
+                {
+                    printf("piece_len is %d and filelen is %d\n",g_torrentmeta->piece_len,g_filelen);
                     len1 = g_torrentmeta->piece_len % 65536;
-                    if(len1 == 0){
+                    if(len1 == 0)
+                    {
                         len1 = 65536;
                     }
                 }
-                else{
+                else                           //最后一个分片？
+                {
                     int piece_len = g_filelen % g_torrentmeta->piece_len;
-                    if(piece_len == 0){
+                    if(piece_len == 0)
+                    {
                         piece_len = g_torrentmeta->piece_len;
                     }
                     len1 = piece_len % 65536;
-                    if(len1 == 0){
+                    if(len1 == 0)
+                    {
                         len1 = 65536;
                     }
                 }
             }
-            memcpy(buffer, (char*)&len1, sizeof(int));    
+            len1 = htonl(len1);
+            memcpy(buffer, (char*)&len1, sizeof(int));
             printf("Now I will send Request pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
-            printf("index is %d, begin is %d, len is %d\n",index, begin, len1);
+            printf("index is %d, begin is %d, len is %d\n",ntohl(index), ntohl(begin), ntohl(len1));
             printf("send to %d in sendRequest\n",my_peer->sockfd);
             int n = send(my_peer->sockfd, temp_buffer, sizeof(int)*4 + sizeof(char), 0);
             printf("n is %d\n", n);
             free(temp_buffer);
         }
-        printf("now will return from sendRequest\n");
     }
+    printf("now will return from sendRequest\n");
 }
 
-void sendPiece(int sockfd, int index, int begin, int len){
+void sendPiece(int sockfd, int index, int begin, int len)
+{
     unsigned char* send_buff = (unsigned char*)malloc(sizeof(int) * 3 + sizeof(unsigned char) * (1 + len));
     unsigned char* temp_buff = send_buff;
 
@@ -179,10 +222,11 @@ void sendPiece(int sockfd, int index, int begin, int len){
     free(temp_buff);
 }
 
-void sendHave(int sockfd, int index){
+void sendHave(int sockfd, int index)
+{
     unsigned char* send_buff = (unsigned char*)malloc(sizeof(int) * 2 + sizeof(unsigned char));
     unsigned char* temp_buff = send_buff;
-    
+
     int send_len = sizeof(int) + sizeof(char);
     strncpy(send_buff, (char*)&send_len, 4);
     send_buff += 4;

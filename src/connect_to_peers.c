@@ -15,6 +15,7 @@ void *connect_to_peer(void *p)
         return NULL;
     }
     mypeer->status = 1;
+    pthread_mutex_unlock(&mypeer->sock_mutex);
 
     printf("\033[32m""I connect to somebody\n""\033[m");
     mypeer->sockfd = connect_to_host(mypeer->ip, mypeer->port);
@@ -83,6 +84,6 @@ void *connect_to_peer(void *p)
     pthread_create(&thread_1, NULL, check_and_keepalive, (void*)k);
 END:
     free(shkhdmsg);
-    destroy_peer(k);
-    pthread_mutex_unlock(&mypeer->sock_mutex);
+    if(mypeer->status != 2)
+        destroy_peer(k);
 }
