@@ -221,11 +221,21 @@ void *recv_from_peer(void *p)
                 pthread_mutex_unlock(&my_peer->piecesInfo_mutex);
                 if(piecesInfo[index] == 0)
                 {
-                    if(my_peer->have_interest == 0)
-                    {
-                        //send interested
-                        sendInterested(sockfd);
-                        my_peer->have_interest = 1;
+                    int f = 0, flag = 0;
+                    pthread_mutex_lock(&my_peer->piecesInfo_mutex);
+                    for(; f < piecesNum; f ++){
+                        if(piecesInfo[f] == 0 && my_peer->piecesInfo[f] == 1){
+                            flag = 1;
+                        }
+                    }
+                    pthread_mutex_unlock(&my_peer->piecesInfo_mutex);
+                    if(flag == 1){
+                        if(my_peer->have_interest == 0)
+                        {
+                            //send interested
+                            sendInterested(sockfd);
+                            my_peer->have_interest = 1;
+                        }
                     }
                     if(my_peer->choked == 0)
                     {
@@ -283,11 +293,21 @@ void *recv_from_peer(void *p)
                     printf("%d ", my_peer->piecesInfo[i]);
                 }
                 printf("\n");
-                if(my_peer->have_interest == 0)
-                {
-                    //send interested
-                    sendInterested(sockfd);
-                    my_peer->have_interest = 1;
+                int f = 0, flag = 0;
+                pthread_mutex_lock(&my_peer->piecesInfo_mutex);
+                for(; f < piecesNum; f ++){
+                    if(piecesInfo[f] == 0 && my_peer->piecesInfo[f] == 1){
+                        flag = 1;
+                    }
+                }
+                pthread_mutex_unlock(&my_peer->piecesInfo_mutex);
+                if(flag == 1){
+                    if(my_peer->have_interest == 0)
+                    {
+                        //send interested
+                        sendInterested(sockfd);
+                        my_peer->have_interest = 1;
+                    }
                 }
                 break;
             }
@@ -364,11 +384,21 @@ void *recv_from_peer(void *p)
                                 pthread_mutex_unlock(&peers_pool[q].piecesInfo_mutex);
                             }
                         }
-                        //sendInterested
-                        if(my_peer->have_interest == 0)
-                        {
-                            sendInterested(my_peer->sockfd);
-                            my_peer->have_interest = 1;
+                        int f = 0, flag = 0;
+                        pthread_mutex_lock(&peers_pool[q].piecesInfo_mutex);
+                        for(; f < piecesNum; f ++){
+                            if(piecesInfo[f] == 0 && my_peer->piecesInfo[f] == 1){
+                                flag = 1;
+                            }
+                        }
+                        pthread_mutex_unlock(&peers_pool[q].piecesInfo_mutex);
+                        if(flag == 1){
+                            //sendInterested
+                            if(my_peer->have_interest == 0)
+                            {
+                                sendInterested(my_peer->sockfd);
+                                my_peer->have_interest = 1;
+                            }
                         }
                         if(my_peer->choked == 0)
                         {
