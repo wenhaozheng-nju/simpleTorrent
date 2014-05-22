@@ -296,5 +296,6 @@ int main(int argc, char **argv)
 
     // 睡眠以等待其他线程关闭它们的套接字, 只有在用户按下ctrl-c时才会到达这里
     sleep(2);
+    printf("main exit\n");
     exit(0);
 }

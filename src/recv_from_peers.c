@@ -361,7 +361,7 @@ void *recv_from_peer(void *p)
                                 if(peers_pool[q].piecesInfo[index] == 0){
                                     sendHave(peers_pool[q].sockfd, index);
                                 }
-                                pthread_mutex_lock(&peers_pool[q].piecesInfo_mutex);
+                                pthread_mutex_unlock(&peers_pool[q].piecesInfo_mutex);
                             }
                         }
                         //sendInterested
