@@ -173,6 +173,7 @@ void *recv_from_peer(void *p)
             {
                 //have
                 int index = *(int*)&buffer[1];
+                index = ntohl(index);
                 my_peer->piecesInfo[index] = 1;
                 break;
             }
@@ -238,9 +239,12 @@ void *recv_from_peer(void *p)
             {
                 //piece
                 int index = *(int*)&buffer[1];
+                index = ntohl(index);
                 int begin = *(int*)&buffer[5];
+                begin = ntohl(begin);
                 int blocklen = len - sizeof(char) - sizeof(int)*2;
                 buffer2file(index, begin, blocklen, buffer + 9);
+                g_downloaded += blocklen;
                 int subPieceNo = begin / 65536;
                 assert(piecesInfo[index] == 1);
                 isSubpiecesReceived[index][subPieceNo] = 1;

@@ -17,6 +17,8 @@ void init()
 {
     g_done = 0;
     g_tracker_response = NULL;
+    g_uploaded = 0;
+    g_downloaded = 0;
     pthread_mutex_init(&g_mutex,NULL);
     int i;
     for(i=0; i<MAXPEERS; i++)
@@ -36,6 +38,17 @@ void init()
         pthread_mutex_init(&(peers_pool[i].sock_mutex),NULL);
         pthread_mutex_init(&(peers_pool[i].alive_mutex),NULL);
     }
+}
+void update_g_left(int *pieces_info)
+{
+   g_left = g_torrentmeta->length;
+   int i;
+   for(i=0;i<g_torrentmeta->num_pieces;i++)
+   {
+       if(pieces_info[i])
+           g_left -= g_torrentmeta->piece_len;
+   }
+   assert(g_left >= 0);
 }
 
 int alloc_peer(char *peer_id)
@@ -132,6 +145,8 @@ int main(int argc, char **argv)
     g_torrentmeta = parsetorrentfile(argv[1]);
     memcpy(g_infohash,g_torrentmeta->info_hash,20);
     piecesInfo = parse_data_file(g_torrentmeta,&piecesNum); 
+
+    update_g_left(piecesInfo);
 
     g_filelen = g_torrentmeta->length;
     g_num_pieces = g_torrentmeta->num_pieces;

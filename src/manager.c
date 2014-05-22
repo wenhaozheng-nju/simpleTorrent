@@ -206,19 +206,23 @@ void sendPiece(int sockfd, int index, int begin, int len)
     unsigned char* temp_buff = send_buff;
 
     int send_len = sizeof(int) * 2 + sizeof(char) * (1 + len);
-    strncpy(send_buff, (char*)&send_len, 4);
+    int send_len_n = htonl(send_len);
+    strncpy(send_buff, (char*)&send_len_n, 4);
     send_buff += 4;
     *send_buff ++ = 7;
 
-    strncpy(send_buff, (char*)&index, 4);
+    int index_n = htonl(index);
+    strncpy(send_buff, (char*)&index_n, 4);
     send_buff += 4;
 
-    strncpy(send_buff, (char*)&begin, 4);
+    int begin_n = htonl(begin);
+    strncpy(send_buff, (char*)&begin_n, 4);
     send_buff += 4;
 
     file2buffer(index, begin, len, send_buff);
     printf("Now I will send piece pack\n");
     send(sockfd, temp_buff, sizeof(int) * 3 + sizeof(unsigned char) * (1 + len), 0);
+    g_uploaded += len;
     free(temp_buff);
 }
 
@@ -228,12 +232,28 @@ void sendHave(int sockfd, int index)
     unsigned char* temp_buff = send_buff;
 
     int send_len = sizeof(int) + sizeof(char);
-    strncpy(send_buff, (char*)&send_len, 4);
+    memcpy(send_buff, (char*)&send_len, 4);
     send_buff += 4;
     *send_buff ++ = 5;
 
-    strncpy(send_buff, (char*)&index, 4);
+    int index_n = htonl(index);
+    strncpy(send_buff, (char*)&index_n, 4);
     printf("Now I will send have pack\n");
     send(sockfd, temp_buff, sizeof(int) * 2 + sizeof(unsigned char), 0);
     free(temp_buff);
 }
+void sendInterested(int sockfd)
+{
+    unsigned char *send_buff = (unsigned char *)malloc(sizeof(int) + sizeof(unsigned char));
+    unsigned char *temp_buffer = send_buff;
+
+    int send_len = 1;
+    send_len = htonl(send_len);
+    memcpy(send_buff,(char *)&send_len,4);
+    send_buff +=4;
+    *send_buff ++ = 2;
+    printf("now I will send interested pack\n");
+    send(sockfd,temp_buffer,sizeof(int)+sizeof(unsigned char),0);
+    free(temp_buffer);
+}
+
