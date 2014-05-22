@@ -48,8 +48,8 @@ void sendBitField(int sockfd)
         int temp;
         if(i != piecesNum -1)
         {
-            temp = g_torrentmeta->piece_len / 65536;
-            if(g_torrentmeta->piece_len % 65536 != 0)
+            temp = g_torrentmeta->piece_len / SUB_PIECE_LEN;
+            if(g_torrentmeta->piece_len % SUB_PIECE_LEN != 0)
             {
                 temp ++;
             }
@@ -61,8 +61,8 @@ void sendBitField(int sockfd)
             {
                 piece_len = g_torrentmeta->piece_len;
             }
-            temp = piece_len / 65536;
-            if(piece_len % 65536 != 0)
+            temp = piece_len / SUB_PIECE_LEN;
+            if(piece_len % SUB_PIECE_LEN != 0)
             {
                 temp ++;
             }
@@ -154,24 +154,24 @@ void sendRequest(int k)
             int index = htonl(requestPiece);
             memcpy(buffer, (char*)&index, sizeof(int));
             buffer += sizeof(int);
-            int begin = j * 65536;
+            int begin = j * SUB_PIECE_LEN;
             begin = htonl(begin);
             memcpy(buffer, (char*)&begin, sizeof(int));
             buffer += sizeof(int);
             int len1;
             if(j != subpiecesNum[requestPiece] - 1)
             {
-                len1 = 65536;
+                len1 = SUB_PIECE_LEN;
             }
             else
             {
                 if(requestPiece != piecesNum - 1)
                 {
                     printf("piece_len is %d and filelen is %d\n",g_torrentmeta->piece_len,g_filelen);
-                    len1 = g_torrentmeta->piece_len % 65536;
+                    len1 = g_torrentmeta->piece_len % SUB_PIECE_LEN;
                     if(len1 == 0)
                     {
-                        len1 = 65536;
+                        len1 = SUB_PIECE_LEN;
                     }
                 }
                 else                           //最后一个分片？
@@ -181,20 +181,20 @@ void sendRequest(int k)
                     {
                         piece_len = g_torrentmeta->piece_len;
                     }
-                    len1 = piece_len % 65536;
+                    len1 = piece_len % SUB_PIECE_LEN;
                     if(len1 == 0)
                     {
-                        len1 = 65536;
+                        len1 = SUB_PIECE_LEN;
                     }
                 }
             }
             len1 = htonl(len1);
             memcpy(buffer, (char*)&len1, sizeof(int));
-            printf("Now I will send Request pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
-            printf("index is %d, begin is %d, len is %d\n",ntohl(index), ntohl(begin), ntohl(len1));
-            printf("send to %d in sendRequest\n",my_peer->sockfd);
+            //printf("Now I will send Request pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
+            //printf("index is %d, begin is %d, len is %d\n",ntohl(index), ntohl(begin), ntohl(len1));
+            //printf("send to %d in sendRequest\n",my_peer->sockfd);
             int n = send(my_peer->sockfd, temp_buffer, sizeof(int)*4 + sizeof(char), 0);
-            printf("n is %d\n", n);
+            //printf("n is %d\n", n);
             free(temp_buffer);
         }
     }
@@ -208,16 +208,19 @@ void sendPiece(int sockfd, int index, int begin, int len)
 
     int send_len = sizeof(int) * 2 + sizeof(char) * (1 + len);
     int send_len_n = htonl(send_len);
-    strncpy(send_buff, (char*)&send_len_n, 4);
+    printf("piece pack_len is %x,",send_len_n);
+    memcpy(send_buff, (char*)&send_len_n, 4);
     send_buff += 4;
     *send_buff ++ = 7;
 
     int index_n = htonl(index);
-    strncpy(send_buff, (char*)&index_n, 4);
+    printf("index is %x,",index_n);
+    memcpy(send_buff, (char*)&index_n, 4);
     send_buff += 4;
 
     int begin_n = htonl(begin);
-    strncpy(send_buff, (char*)&begin_n, 4);
+    printf("begin is %x\n",begin_n);
+    memcpy(send_buff, (char*)&begin_n, 4);
     send_buff += 4;
 
     file2buffer(index, begin, len, send_buff);
@@ -256,5 +259,20 @@ void sendInterested(int sockfd)
     printf("now I will send interested pack\n");
     send(sockfd,temp_buffer,sizeof(int)+sizeof(unsigned char),0);
     free(temp_buffer);
+}
+void sendUnchoked(int sockfd)
+{
+    unsigned char *send_buff = (unsigned char *)malloc(sizeof(int) + sizeof(unsigned char));
+    unsigned char *temp_buffer = send_buff;
+
+    int send_len = 1;
+    send_len = htonl(send_len);
+    memcpy(send_buff,(char *)&send_len,4);
+    send_buff +=4;
+    *send_buff ++ = 1;
+    printf("now I will send unchoked pack\n");
+    send(sockfd,temp_buffer,sizeof(int)+sizeof(unsigned char),0);
+    free(temp_buffer);
+    
 }
 

@@ -80,8 +80,6 @@ void *recv_from_peer(void *p)
         int len = *(int*)buffer;
         len = ntohl(len);
         free(buffer);
-        buffer = (unsigned char*)malloc(len);
-        memset(buffer, 0, len);
         /*
         if(len == 19 && strcmp(buffer, BT_PROTOCOL) == 0){
             //握手报文
@@ -139,6 +137,8 @@ void *recv_from_peer(void *p)
         }
         else
         {
+            buffer = (unsigned char*)malloc(len);
+            memset(buffer, 0, len);
             printf("len is %d before recv buf\n",len);
             n = recv(sockfd, buffer, len, 0);
             if(n<=0)
@@ -161,7 +161,8 @@ void *recv_from_peer(void *p)
                 //unchoke
                 my_peer->choked = 0;
                 pthread_mutex_lock(&my_peer->request_mutex);
-                if(my_peer->isRequest == 0){
+                if(my_peer->isRequest == 0)
+                {
                     //send request
                     sendRequest(k);
                 }
@@ -172,6 +173,7 @@ void *recv_from_peer(void *p)
             {
                 //interested
                 my_peer->interested = 1;
+                sendUnchoked(my_peer->sockfd);
                 break;
             }
             case 3:
@@ -185,15 +187,19 @@ void *recv_from_peer(void *p)
                 int index = *(int*)&buffer[1];
                 index = ntohl(index);
                 my_peer->piecesInfo[index] = 1;
-                if(piecesInfo[index] == 0){
-                    if(my_peer->have_interest == 0){
+                if(piecesInfo[index] == 0)
+                {
+                    if(my_peer->have_interest == 0)
+                    {
                         //send interested
                         sendInterested(sockfd);
                         my_peer->have_interest = 1;
                     }
-                    if(my_peer->choked == 0){
+                    if(my_peer->choked == 0)
+                    {
                         pthread_mutex_lock(&my_peer->request_mutex);
-                        if(my_peer->isRequest == 0){
+                        if(my_peer->isRequest == 0)
+                        {
                             //send request
                             sendRequest(k);
                         }
@@ -243,7 +249,8 @@ void *recv_from_peer(void *p)
                     printf("%d ", my_peer->piecesInfo[i]);
                 }
                 printf("\n");
-                if(my_peer->have_interest == 0){
+                if(my_peer->have_interest == 0)
+                {
                     //send interested
                     sendInterested(sockfd);
                     my_peer->have_interest = 1;
@@ -253,13 +260,15 @@ void *recv_from_peer(void *p)
             case 6:
             {
                 //request
-                if(my_peer->interested == 1){
+                if(my_peer->interested == 1)
+                {
                     int index = *(int*)&buffer[1];
                     index = ntohl(index);
                     int begin = *(int*)&buffer[5];
                     begin = ntohl(begin);
                     int blocklen = *(int*)&buffer[9];
                     blocklen = ntohl(blocklen);
+                    printf("request packet 's index is %d,begin is %d,blocklen is %d\n",index,begin,blocklen);
                     sendPiece(my_peer->sockfd, index, begin, blocklen);
                 }
                 break;
@@ -267,15 +276,16 @@ void *recv_from_peer(void *p)
             case 7:
             {
                 //piece
-                printf("now I recv piece packet\n");
+                printf("now I recv piece packet:");
                 int index = *(int*)&buffer[1];
                 index = ntohl(index);
                 int begin = *(int*)&buffer[5];
                 begin = ntohl(begin);
+                printf("index is %x,and begin is %x\n",index,begin);
                 int blocklen = len - sizeof(char) - sizeof(int)*2;
                 memcpy(piecebuffer+begin, buffer+9, blocklen);
                 g_downloaded += blocklen;
-                int subPieceNo = begin / 65536;
+                int subPieceNo = begin / SUB_PIECE_LEN;
                 assert(piecesInfo[index] == 1);
                 isSubpiecesReceived[index][subPieceNo] = 1;
                 int flag = 1;
@@ -290,44 +300,55 @@ void *recv_from_peer(void *p)
                 if(flag == 1)
                 {
                     int piecelen;
-                    if(index != piecesNum - 1){
+                    if(index != piecesNum - 1)
+                    {
                         piecelen = g_torrentmeta->piece_len;
                     }
-                    else{
+                    else
+                    {
                         piecelen = g_filelen % g_torrentmeta->piece_len;
-                        if(piecelen == 0){
+                        if(piecelen == 0)
+                        {
                             piecelen = g_torrentmeta->piece_len;
                         }
                     }
-                    if(buffer2file(index, piecelen,piecebuffer) == 0){
+                    if(buffer2file(index, piecelen,piecebuffer) == 0)
+                    {
                         pthread_mutex_lock(&my_peer->request_mutex);
                         my_peer->isRequest = 0;
                         pthread_mutex_unlock(&my_peer->request_mutex);
                         //sendHave to all peers
                         int q = 0;
-                        for(; q < MAXPEERS; q ++){
-                            if(peers_pool[q].used == 1 && peers_pool[q].status >= 2 && peers_pool[q].sockfd > 0){
+                        for(; q < MAXPEERS; q ++)
+                        {
+                            if(peers_pool[q].used == 1 && peers_pool[q].status >= 2 && peers_pool[q].sockfd > 0)
+                            {
                                 sendHave(peers_pool[q].sockfd, index);
                             }
                         }
                         //sendInterested
-                        if(my_peer->have_interest == 0){
+                        if(my_peer->have_interest == 0)
+                        {
                             sendInterested(my_peer->sockfd);
                             my_peer->have_interest = 1;
                         }
-                        if(my_peer->choked == 0){
+                        if(my_peer->choked == 0)
+                        {
                             //sendRequest
                             pthread_mutex_lock(&my_peer->request_mutex);
-                            if(my_peer->isRequest == 0){
+                            if(my_peer->isRequest == 0)
+                            {
                                 sendRequest(k);
                             }
                             pthread_mutex_unlock(&my_peer->request_mutex);
                         }
                     }
-                    else{
+                    else
+                    {
                         piecesInfo[index] = 0;
                         int j = 0;
-                        for(; j < subpiecesNum[index]; j ++){
+                        for(; j < subpiecesNum[index]; j ++)
+                        {
                             isSubpiecesReceived[index][j] = 0;
                         }
                     }

@@ -85,5 +85,6 @@ void sendRequest(int k);
 void sendPiece(int sockfd, int index, int begin, int len);
 void sendHave(int sockfd, int index);
 void sendInterested(int sockfd);
+void sendUnchoked(int sockfd);
 void destroy_peer(int pos);
 #endif

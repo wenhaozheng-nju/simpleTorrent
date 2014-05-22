@@ -44,12 +44,12 @@ void init()
 void update_g_left(int *pieces_info)
 {
    g_left = g_torrentmeta->length;
-   int i;
+   /*int i;
    for(i=0;i<g_torrentmeta->num_pieces;i++)
    {
        if(pieces_info[i])
            g_left -= g_torrentmeta->piece_len;
-   }
+   }*/
    assert(g_left >= 0);
 }
 
