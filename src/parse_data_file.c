@@ -22,8 +22,7 @@
 
 #define DATA_PATH "./data/"
 
-file_array *my_file_array;
-int sum_of_file;
+//int sum_of_file;
 
 
 void read_buf(char *buf,int offset,int data_len)
@@ -171,16 +170,23 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
     //meta_tree->single_or_muti = 0;       //单文件解析
     if(meta_tree->single_or_muti == 0)
     {
+        printf("single file!!\n");
         //printf("file name is %s\n",meta_tree->name);
         char *file_path = (char *)malloc(strlen(meta_tree->name) + 1);
         memset(file_path,0,strlen(meta_tree->name) + 1);
         //strcat(file_path,DATA_PATH);
         strcpy(file_path,meta_tree->name);
+        my_file_array = (file_array *)malloc(1*sizeof(file_array));
+        my_file_array[0].length = meta_tree->length;
+        my_file_array[0].name = (char *)malloc(strlen(file_path) + 1);
+        memset(my_file_array[0].name,0,strlen(file_path)+1);
+        memcpy(my_file_array[0].name,file_path,strlen(file_path));
+        printf("name is %s\n",my_file_array[0].name);
         struct stat statbuf;
         if(stat(file_path,&statbuf) < 0)
         {
             *num_piece = meta_tree->num_pieces;
-            printf("file_path is %s\n",file_path);
+            //printf("file_path is %s\n",file_path);
             return new_file(meta_tree,file_path);
         }
         int n_file_len = statbuf.st_size;
@@ -194,10 +200,7 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
         FILE *data_file = fopen(file_path,"rb");
         //fseek(data_file,0,SEEK_END);
         //printf("11\n");
-        my_file_array = (file_array *)malloc(1*sizeof(file_array));
-        my_file_array->length = meta_tree->length;
-        my_file_array->name = file_path;
-        sum_of_file = 1;
+        //sum_of_file = 1;
         *num_piece = meta_tree->num_pieces;
         int len = meta_tree->length;
         int i;
@@ -403,8 +406,10 @@ int buffer2file(int index,int length,char *buf)
     }
 
     int offset = index*g_torrentmeta->piece_len;
-    if(sum_of_file == 1)
+    //printf("sum_of_file is %d\n",sum_of_file);
+    if(g_torrentmeta->single_or_muti == 0)
     {
+        printf("name is %s\n",my_file_array[0].name);
         FILE *file = fopen(my_file_array[0].name,"r+");
         fseek(file,offset,SEEK_CUR);
         fwrite(buf,1,length,file);
@@ -418,12 +423,13 @@ int buffer2file(int index,int length,char *buf)
 }
 void file2buffer(int index,int begin,int length,char *buf)
 {
-    if(sum_of_file == 1)
+    if(g_torrentmeta->single_or_muti == 0)
     {
         FILE *file = fopen(my_file_array[0].name,"r");
         int offset = index*g_torrentmeta->piece_len+begin;
         fseek(file,offset,SEEK_CUR);
         fread(buf,1,length,file);
+        fclose(file);
     }
     else
     {

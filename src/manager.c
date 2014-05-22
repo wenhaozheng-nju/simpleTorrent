@@ -192,7 +192,7 @@ void sendRequest(int k)
             memcpy(buffer, (char*)&len1, sizeof(int));
             //printf("Now I will send Request pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
             //printf("index is %d, begin is %d, len is %d\n",ntohl(index), ntohl(begin), ntohl(len1));
-            //printf("send to %d in sendRequest\n",my_peer->sockfd);
+           // printf("send to %d in sendRequest\n",my_peer->sockfd);
             int n = send(my_peer->sockfd, temp_buffer, sizeof(int)*4 + sizeof(char), 0);
             //printf("n is %d\n", n);
             free(temp_buffer);
@@ -236,9 +236,10 @@ void sendHave(int sockfd, int index)
     unsigned char* temp_buff = send_buff;
 
     int send_len = sizeof(int) + sizeof(char);
-    memcpy(send_buff, (char*)&send_len, 4);
+    int send_len_n = htonl(send_len);
+    memcpy(send_buff, (char*)&send_len_n, 4);
     send_buff += 4;
-    *send_buff ++ = 5;
+    *send_buff ++ = 4;
 
     int index_n = htonl(index);
     strncpy(send_buff, (char*)&index_n, 4);

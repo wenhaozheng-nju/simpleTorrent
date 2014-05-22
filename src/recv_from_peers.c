@@ -2,9 +2,36 @@
 #include "btdata.h"
 #include <errno.h>
 
+#include <sys/types.h>          /* See NOTES */
+#include <sys/socket.h>
+
 #define BUFSIZE 1500
 
 extern int errno;
+
+/* readn - read exactly n bytes */
+int readn( int fd, char *bp, size_t len)
+{
+	int cnt;
+	int rc;
+
+	cnt = len;
+	while ( cnt > 0 )
+	{
+		rc = recv( fd, bp, cnt, 0 );
+		if ( rc < 0 )				/* read error? */
+		{
+			if ( errno == EINTR )	/* interrupted? */
+				continue;			/* restart the read */
+			return -1;				/* return error */
+		}
+		if ( rc == 0 )				/* EOF? */
+			return len - cnt;		/* return short count */
+		bp += rc;
+		cnt -= rc;
+	}
+	return len;
+}
 
 void sendshkhdmsg(int sockfd)
 {
@@ -71,7 +98,7 @@ void *recv_from_peer(void *p)
         buffer = (unsigned char*)malloc(BUFSIZE);
         memset(buffer, 0, BUFSIZE);
         printf("now I waiting recv\n");
-        n = recv(sockfd, buffer, 4, 0);
+        n = readn(sockfd, buffer, 4);
         if(n <= 0)
         {
             printf("recv length error\n");
@@ -79,7 +106,7 @@ void *recv_from_peer(void *p)
         }
         int len = *(int*)buffer;
         len = ntohl(len);
-        free(buffer);
+        assert(len >= 0);
         /*
         if(len == 19 && strcmp(buffer, BT_PROTOCOL) == 0){
             //握手报文
@@ -137,10 +164,13 @@ void *recv_from_peer(void *p)
         }
         else
         {
+            free(buffer);
             buffer = (unsigned char*)malloc(len);
             memset(buffer, 0, len);
             printf("len is %d before recv buf\n",len);
-            n = recv(sockfd, buffer, len, 0);
+            //n = recv(sockfd, buffer, len, 0);
+            n = readn(sockfd,buffer,len);
+            assert(n == len);
             if(n<=0)
             {
                 printf("recv buffer error\n");
@@ -314,6 +344,7 @@ void *recv_from_peer(void *p)
                     }
                     if(buffer2file(index, piecelen,piecebuffer) == 0)
                     {
+                        printf("111\n");
                         pthread_mutex_lock(&my_peer->request_mutex);
                         my_peer->isRequest = 0;
                         pthread_mutex_unlock(&my_peer->request_mutex);
@@ -323,7 +354,8 @@ void *recv_from_peer(void *p)
                         {
                             if(peers_pool[q].used == 1 && peers_pool[q].status >= 2 && peers_pool[q].sockfd > 0)
                             {
-                                sendHave(peers_pool[q].sockfd, index);
+                                printf("22\n");
+                                //sendHave(peers_pool[q].sockfd, index);
                             }
                         }
                         //sendInterested
