@@ -299,7 +299,7 @@ void *recv_from_peer(void *p)
                             piecelen = g_torrentmeta->piece_len;
                         }
                     }
-                    if(buffer2file(index, piecebuffer, piecelen) == 0){
+                    if(buffer2file(index, piecelen,piecebuffer) == 0){
                         pthread_mutex_lock(&my_peer->request_mutex);
                         my_peer->isRequest = 0;
                         pthread_mutex_unlock(&my_peer->request_mutex);
