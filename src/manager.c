@@ -101,13 +101,23 @@ void *check_and_keepalive(void *p)
                     peers_pool[k].status = 0;
                 }
                 pthread_mutex_unlock(&peers_pool[k].sock_mutex);
+                pthread_mutex_lock(&peers_pool[k].alive_mutex);
                 break;
             }
             else
             {
-                int len = 0;
-                printf("Now I will send keepalive pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
-                send(peers_pool[k].sockfd, (char *)&len, sizeof(int), 0);
+                pthread_mutex_lock(&peers_pool[k].sock_mutex);
+                if(peers_pool[k].sockfd > 0){
+                    int len = 0;
+                    printf("Now I will send keepalive pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
+                    send(peers_pool[k].sockfd, (char *)&len, sizeof(int), 0);
+                }
+                else{
+                    pthread_mutex_unlock(&peers_pool[k].sock_mutex);
+                    pthread_mutex_lock(&peers_pool[k].alive_mutex);
+                    break;
+                }
+                pthread_mutex_unlock(&peers_pool[k].sock_mutex);
             }
             peers_pool[k].alive = 0;
             pthread_mutex_unlock(&peers_pool[k].alive_mutex);
