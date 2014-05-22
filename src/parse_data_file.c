@@ -392,6 +392,8 @@ void buffer2file(int index,int begin,int length,char *buf)
     }
     else
     {
+        int offset = index*g_torrentmeta->piece_len+begin;
+        write_buf(buf,offset,length);
     }
 }
 void file2buffer(int index,int begin,int length,char *buf)

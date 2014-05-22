@@ -145,6 +145,7 @@ void *recv_from_peer(void *p)
             }
 
             unsigned char id = buffer[0];
+            printf("id is %d\n",id);
             switch(id)
             {
             case 0:
@@ -263,6 +264,7 @@ void *recv_from_peer(void *p)
             case 7:
             {
                 //piece
+                printf("now I recv piece packet\n");
                 int index = *(int*)&buffer[1];
                 index = ntohl(index);
                 int begin = *(int*)&buffer[5];
