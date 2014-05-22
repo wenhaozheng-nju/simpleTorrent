@@ -167,5 +167,7 @@ int *piecesInfo;
 int **isSubpiecesReceived;
 int *subpiecesNum;
 file_array *my_file_array;
+int least_prefer;
+pthread_mutex_t least_prefer_mutex;
 
 #endif

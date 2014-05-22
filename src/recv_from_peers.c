@@ -375,6 +375,11 @@ void *recv_from_peer(void *p)
                     printf("I ready to write file\n");
                     if(buffer2file(index, piecelen,piecebuffer) == 0)
                     {
+                        pthread_mutex_lock(&least_prefer_mutex);
+                        if(least_prefer == 0){
+                            least_prefer = 1;
+                        }
+                        pthread_mutex_unlock(&least_prefer_mutex);
                         pthread_mutex_lock(&my_peer->request_mutex);
                         my_peer->isRequest = 0;
                         pthread_mutex_unlock(&my_peer->request_mutex);
