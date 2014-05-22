@@ -121,7 +121,7 @@ void write_buf(char *buf,int offset,int data_len)
             i++;
         }
     }
-    
+
 }
 
 int *new_file(torrentmetadata_t *meta_tree,char *name)
@@ -380,21 +380,41 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
     return NULL;
 }
 
-void buffer2file(int index,int begin,int length,char *buf)
+int buffer2file(int index,int length,char *buf)
 {
+
+    SHA1Context sha;
+    SHA1Reset(&sha);
+    SHA1Input(&sha,(const unsigned char *)buf,length);
+    if(!SHA1Result(&sha))
+    {
+        printf("failure\n");
+    }
+    int k;
+    for(k=0; k<5; k++)
+    {
+        sha.Message_Digest[k] = htonl(sha.Message_Digest[k]);
+    }
+    unsigned char *tmp_pieces = g_torrentmeta->pieces + 20*index;
+    if(SHA_cmp(sha.Message_Digest,tmp_pieces) != 0 )
+    {
+        printf("pieces %d sha error\n",index);
+        return -1;
+    }
+
+    int offset = index*g_torrentmeta->piece_len;
     if(sum_of_file == 1)
     {
         FILE *file = fopen(my_file_array[0].name,"r+");
-        int offset = index*g_torrentmeta->piece_len + begin;
         fseek(file,offset,SEEK_CUR);
         fwrite(buf,1,length,file);
         fclose(file);
     }
     else
     {
-        int offset = index*g_torrentmeta->piece_len+begin;
         write_buf(buf,offset,length);
     }
+    return 0;
 }
 void file2buffer(int index,int begin,int length,char *buf)
 {
