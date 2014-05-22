@@ -39,6 +39,7 @@ void init()
         pthread_mutex_init(&(peers_pool[i].sock_mutex),NULL);
         pthread_mutex_init(&(peers_pool[i].alive_mutex),NULL);
         pthread_mutex_init(&(peers_pool[i].request_mutex),NULL);
+        pthread_mutex_init(&(peers_pool[i].piecesInfo_mutex),NULL);
     }
 }
 void update_g_left(int *pieces_info)

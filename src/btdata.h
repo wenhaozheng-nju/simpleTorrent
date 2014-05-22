@@ -106,6 +106,7 @@ typedef struct _peer_t {
   pthread_mutex_t sock_mutex;
   pthread_mutex_t alive_mutex;
   pthread_mutex_t request_mutex;
+  pthread_mutex_t piecesInfo_mutex;
 } peer_t;
 
 

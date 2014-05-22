@@ -216,7 +216,9 @@ void *recv_from_peer(void *p)
                 //have
                 int index = *(int*)&buffer[1];
                 index = ntohl(index);
+                pthread_mutex_lock(&my_peer->piecesInfo_mutex);
                 my_peer->piecesInfo[index] = 1;
+                pthread_mutex_unlock(&my_peer->piecesInfo_mutex);
                 if(piecesInfo[index] == 0)
                 {
                     if(my_peer->have_interest == 0)
@@ -262,10 +264,12 @@ void *recv_from_peer(void *p)
                 }
                 assert((len-1)*8 >= piecesNum);
                 printf("piecesNum is %d\n",piecesNum);
+                pthread_mutex_lock(&my_peer->piecesInfo_mutex);
                 my_peer->piecesInfo = (int*)malloc(piecesNum * sizeof(int));
                 memset(my_peer->piecesInfo,0,piecesNum*sizeof(int));
                 for(i=0; i<piecesNum; i++)
                     my_peer->piecesInfo[i] = bit_array[i];
+                pthread_mutex_unlock(&my_peer->piecesInfo_mutex);
                 free(bit_array);
                 /*
                 {
@@ -344,7 +348,6 @@ void *recv_from_peer(void *p)
                     }
                     if(buffer2file(index, piecelen,piecebuffer) == 0)
                     {
-                        printf("111\n");
                         pthread_mutex_lock(&my_peer->request_mutex);
                         my_peer->isRequest = 0;
                         pthread_mutex_unlock(&my_peer->request_mutex);
@@ -354,8 +357,11 @@ void *recv_from_peer(void *p)
                         {
                             if(peers_pool[q].used == 1 && peers_pool[q].status >= 2 && peers_pool[q].sockfd > 0)
                             {
-                                printf("22\n");
-                                //sendHave(peers_pool[q].sockfd, index);
+                                pthread_mutex_lock(&peers_pool[q].piecesInfo_mutex);
+                                if(peers_pool[q].piecesInfo[index] == 0){
+                                    sendHave(peers_pool[q].sockfd, index);
+                                }
+                                pthread_mutex_lock(&peers_pool[q].piecesInfo_mutex);
                             }
                         }
                         //sendInterested
