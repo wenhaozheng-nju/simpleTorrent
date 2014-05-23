@@ -210,6 +210,7 @@ int *parse_data_file(torrentmetadata_t *meta_tree,int *num_piece)
         //printf("piece_len is %d\n",meta_tree->piece_len);
         for(i=0; i<*num_piece; i++)
         {
+            printf("i is %d\n",i);
             memset(buf,0,meta_tree->piece_len);
             ret[i] = 0;               //初始化分片信息
             if(len < meta_tree->piece_len)

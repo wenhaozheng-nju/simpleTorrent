@@ -4,6 +4,7 @@
 
 void *connect_to_peer(void *p)
 {
+    printf("I will to connect to you\n");
     sleep(15);
     int k = (int)p;
     peer_t *mypeer = &peers_pool[k];

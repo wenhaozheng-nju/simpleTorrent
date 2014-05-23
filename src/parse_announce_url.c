@@ -19,7 +19,7 @@ announce_url_t* parse_announce_url(char* announce)
   strncpy(port_str,announce_ind+1,port_len);
   port_str[port_len] = '\0';
   port = atoi(port_str);
-    
+  printf("222\n"); 
   char* p;
   for(p=announce; p<announce_ind; p++)
   {

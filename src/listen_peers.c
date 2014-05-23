@@ -131,6 +131,7 @@ void *listen_peers(void *p)
         my_param.ip = ip;
         my_param.sockfd = sockfd;
         pthread_t thread;
+        printf("I listen a peer\n");
         pthread_create(&thread,NULL,peer_deal,(void *)&my_param);
         /*
         printf("listen_peer accept sockfd : %d\n",sockfd);

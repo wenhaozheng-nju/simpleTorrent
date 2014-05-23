@@ -54,14 +54,14 @@ void update_g_left(int *pieces_info)
    assert(g_left >= 0);
 }
 
-int alloc_peer(char *peer_id)
+int alloc_peer()
 {
     int i;
-    for(i=0; i<MAXPEERS; i++)
+    /*for(i=0; i<MAXPEERS; i++)
     {
         if(peers_pool[i].used == 1 && strncmp(peer_id,peers_pool[i].id,20) == 0)
             return -1;
-    }
+    }*/
     for(i=0; i<MAXPEERS; i++)
     {
         if(peers_pool[i].used == 0)
@@ -148,13 +148,13 @@ int main(int argc, char **argv)
     g_torrentmeta = parsetorrentfile(argv[1]);
     memcpy(g_infohash,g_torrentmeta->info_hash,20);
     piecesInfo = parse_data_file(g_torrentmeta,&piecesNum); 
-
+    printf("000\n");
     update_g_left(piecesInfo);
 
     g_filelen = g_torrentmeta->length;
     g_num_pieces = g_torrentmeta->num_pieces;
     //g_filedata = (char*)malloc(g_filelen*sizeof(char));
-
+    printf("111\n");
     announce_url_t* announce_info;
     announce_info = parse_announce_url(g_torrentmeta->announce);
     // 提取tracker url中的IP地址
@@ -267,19 +267,22 @@ int main(int argc, char **argv)
             {
                 printf("peers ip is %s\n",g_tracker_response->peers[i].ip);
                 pthread_mutex_lock(&g_mutex);
-                int num = alloc_peer(g_tracker_response->peers[i].id);
+                int num = alloc_peer();
                 if(num >= 0)
                 {
                     init_peer(&(g_tracker_response->peers[i]),num);
                     printf("init_peer \n");
-                    pthread_mutex_lock(&peers_pool[i].sock_mutex);
-                    if(peers_pool[num].status != 2 && peers_pool[num].sockfd < 0)
+                    pthread_mutex_lock(&peers_pool[num].sock_mutex);
+                    if(peers_pool[num].status == 0 && peers_pool[num].sockfd < 0)
                     {
-                        pthread_mutex_unlock(&peers_pool[i].sock_mutex);
+                        pthread_mutex_unlock(&peers_pool[num].sock_mutex);
                         pthread_t temp_thread1;
+                        printf("I will create thread to connect_to_peer\n");
+                        peers_pool[num].status = 3;
                         pthread_create(&temp_thread1,NULL,connect_to_peer,(void *)num);
                     }
-                    pthread_mutex_unlock(&peers_pool[i].sock_mutex);
+                    else
+                        pthread_mutex_unlock(&peers_pool[num].sock_mutex);
                 }
                 pthread_mutex_unlock(&g_mutex);
             }
