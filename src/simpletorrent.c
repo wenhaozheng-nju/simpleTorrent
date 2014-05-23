@@ -130,6 +130,7 @@ void init_peer(peerdata *my_peer,int pos)
     peers_pool[pos].ip[strlen(my_peer->ip)] = '\0';
     peers_pool[pos].piecesInfo = (int*)malloc(piecesNum * sizeof(int));
     memset(peers_pool[pos].piecesInfo,0,piecesNum*sizeof(int));
+    peers_pool[pos].isSendCancel = 0; 
 }
 void destroy_peer(int pos)
 {

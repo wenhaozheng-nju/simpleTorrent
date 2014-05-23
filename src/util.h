@@ -20,6 +20,9 @@
 
 #define MAXLINE 4096
 
+
+#define MALLOC_PRO(ptr,type,size) {ptr = (type)malloc(size);memset(ptr,0,size);}
+
 int is_bigendian();
 
 // 从一个已连接套接字接收数据的函数

@@ -4,6 +4,42 @@
 
 extern int errno;
 
+
+int find_piece_len(int index,int j)
+{
+    int len;
+    if(j != subpiecesNum[index] - 1)
+    {
+        len = SUB_PIECE_LEN;
+    }
+    else
+    {
+        if(index != piecesNum - 1)
+        {
+            printf("piece_len is %d and filelen is %d\n",g_torrentmeta->piece_len,g_filelen);
+            len = g_torrentmeta->piece_len % SUB_PIECE_LEN;
+            if(len == 0)
+            {
+                len = SUB_PIECE_LEN;
+            }
+        }
+        else                           //最后一个分片？
+        {
+            int piece_len = g_filelen % g_torrentmeta->piece_len;
+            if(piece_len == 0)
+            {
+                piece_len = g_torrentmeta->piece_len;
+            }
+            len = piece_len % SUB_PIECE_LEN;
+            if(len == 0)
+            {
+                len = SUB_PIECE_LEN;
+            }
+        }
+    }
+    return len;
+}
+
 void sendBitField(int sockfd)
 {
     //piecesInfo = parse_data_file(g_torrentmeta, &piecesNum);
@@ -72,12 +108,14 @@ void *check_and_keepalive(void *p)
             else
             {
                 pthread_mutex_lock(&peers_pool[k].sock_mutex);
-                if(peers_pool[k].sockfd > 0){
+                if(peers_pool[k].sockfd > 0)
+                {
                     int len = 0;
                     printf("Now I will send keepalive pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
                     send(peers_pool[k].sockfd, (char *)&len, sizeof(int), 0);
                 }
-                else{
+                else
+                {
                     pthread_mutex_unlock(&peers_pool[k].sock_mutex);
                     pthread_mutex_lock(&peers_pool[k].alive_mutex);
                     break;
@@ -98,7 +136,8 @@ void sendRequest(int k)
     peer_t* my_peer = &peers_pool[k];
     int i, requestPiece = -1;
     pthread_mutex_lock(&least_prefer_mutex);
-    if(least_prefer == 0){
+    if(least_prefer == 0)                   //非最小优先策略
+    {
         for(i = 0; i < piecesNum; i ++)
         {
             pthread_mutex_lock(&my_peer->piecesInfo_mutex);
@@ -111,17 +150,23 @@ void sendRequest(int k)
             pthread_mutex_unlock(&my_peer->piecesInfo_mutex);
         }
     }
-    else{
+    else                                       //最小优先策略
+    {
         int *have_piece_num = (int *)malloc(piecesNum * sizeof(int));
-        for(i = 0; i < piecesNum; i ++){
+        for(i = 0; i < piecesNum; i ++)
+        {
             have_piece_num[i] = 0;
         }
-        for(i = 0; i < MAXPEERS; i ++){
-            if(peers_pool[i].used == 1 && peers_pool[i].status >= 2){
+        for(i = 0; i < MAXPEERS; i ++)
+        {
+            if(peers_pool[i].used == 1 && peers_pool[i].status >= 2)
+            {
                 int j = 0;
                 pthread_mutex_lock(&peers_pool[i].piecesInfo_mutex);
-                for(; j < piecesNum; j ++){
-                    if(peers_pool[i].piecesInfo[j] == 1){
+                for(; j < piecesNum; j ++)
+                {
+                    if(peers_pool[i].piecesInfo[j] == 1)
+                    {
                         have_piece_num[j] ++;
                     }
                 }
@@ -129,10 +174,13 @@ void sendRequest(int k)
             }
         }
         int min = MAXPEERS + 1;
-        for(i = 0; i < piecesNum; i ++){
+        for(i = 0; i < piecesNum; i ++)
+        {
             pthread_mutex_lock(&my_peer->piecesInfo_mutex);
-            if(piecesInfo[i] == 0 && my_peer->piecesInfo[i] == 1){
-                if(have_piece_num[i] < min){
+            if(piecesInfo[i] == 0 && my_peer->piecesInfo[i] == 1)
+            {
+                if(have_piece_num[i] < min)
+                {
                     min = have_piece_num[i];
                     requestPiece = i;
                 }
@@ -169,41 +217,12 @@ void sendRequest(int k)
             begin = htonl(begin);
             memcpy(buffer, (char*)&begin, sizeof(int));
             buffer += sizeof(int);
-            int len1;
-            if(j != subpiecesNum[requestPiece] - 1)
-            {
-                len1 = SUB_PIECE_LEN;
-            }
-            else
-            {
-                if(requestPiece != piecesNum - 1)
-                {
-                    printf("piece_len is %d and filelen is %d\n",g_torrentmeta->piece_len,g_filelen);
-                    len1 = g_torrentmeta->piece_len % SUB_PIECE_LEN;
-                    if(len1 == 0)
-                    {
-                        len1 = SUB_PIECE_LEN;
-                    }
-                }
-                else                           //最后一个分片？
-                {
-                    int piece_len = g_filelen % g_torrentmeta->piece_len;
-                    if(piece_len == 0)
-                    {
-                        piece_len = g_torrentmeta->piece_len;
-                    }
-                    len1 = piece_len % SUB_PIECE_LEN;
-                    if(len1 == 0)
-                    {
-                        len1 = SUB_PIECE_LEN;
-                    }
-                }
-            }
+            int len1 = find_piece_len(requestPiece,j);
             len1 = htonl(len1);
             memcpy(buffer, (char*)&len1, sizeof(int));
             //printf("Now I will send Request pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
             //printf("index is %d, begin is %d, len is %d\n",ntohl(index), ntohl(begin), ntohl(len1));
-           // printf("send to %d in sendRequest\n",my_peer->sockfd);
+            // printf("send to %d in sendRequest\n",my_peer->sockfd);
             int n = send(my_peer->sockfd, temp_buffer, sizeof(int)*4 + sizeof(char), 0);
             //printf("n is %d\n", n);
             free(temp_buffer);
@@ -212,9 +231,80 @@ void sendRequest(int k)
     printf("now will return from sendRequest\n");
 }
 
+
+void sendRequestForEnd(int sockfd,int index)
+{
+    piecesInfo[index] = 1;
+    int j;
+    for(j=0; j<subpiecesNum[index]; j++)
+    {
+        unsigned char *buffer = (unsigned char *)malloc(sizeof(int)*4+sizeof(unsigned char));
+        memset(buffer,0,sizeof(int)*4+sizeof(unsigned char));
+        unsigned char *temp_buffer = buffer;
+        int len = 13;
+        len = htonl(len);
+        memcpy(buffer,(char *)&len,sizeof(int));
+        buffer += sizeof(int);
+        len = ntohl(len);
+        *buffer ++ = (unsigned char)6;
+        index = htonl(index);
+        memcpy(buffer, (char*)&index, sizeof(int));
+        index = ntohl(index);
+        buffer += sizeof(int);
+        int begin = j * SUB_PIECE_LEN;
+        begin = htonl(begin);
+        memcpy(buffer, (char*)&begin, sizeof(int));
+        buffer += sizeof(int);
+        int len1 = find_piece_len(index,j);
+        len1 = htonl(len1);
+        memcpy(buffer, (char*)&len1, sizeof(int));
+        //printf("Now I will send Request pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
+        //printf("index is %d, begin is %d, len is %d\n",ntohl(index), ntohl(begin), ntohl(len1));
+        // printf("send to %d in sendRequest\n",my_peer->sockfd);
+        int n = send(sockfd, temp_buffer, sizeof(int)*4 + sizeof(char), 0);
+        //printf("n is %d\n", n);
+        free(temp_buffer);
+    }
+}
+
+void sendCancel(int sockfd,int index)
+{
+    int j;
+    for(j=0; j<subpiecesNum[index]; j++)
+    {
+        unsigned char *buffer = (unsigned char *)malloc(sizeof(int)*4+sizeof(unsigned char));
+        memset(buffer,0,sizeof(int)*4+sizeof(unsigned char));
+        unsigned char *temp_buffer = buffer;
+        int len = 13;
+        len = htonl(len);
+        memcpy(buffer,(char *)&len,sizeof(int));
+        buffer += sizeof(int);
+        len = ntohl(len);
+        *buffer ++ = (unsigned char)8;
+        index = htonl(index);
+        memcpy(buffer, (char*)&index, sizeof(int));
+        index = ntohl(index);
+        buffer += sizeof(int);
+        int begin = j * SUB_PIECE_LEN;
+        begin = htonl(begin);
+        memcpy(buffer, (char*)&begin, sizeof(int));
+        buffer += sizeof(int);
+        int len1 = find_piece_len(index,j);
+        len1 = htonl(len1);
+        memcpy(buffer, (char*)&len1, sizeof(int));
+        //printf("Now I will send Request pack to %s:%d\n", peers_pool[k].ip, peers_pool[k].port);
+        //printf("index is %d, begin is %d, len is %d\n",ntohl(index), ntohl(begin), ntohl(len1));
+        // printf("send to %d in sendRequest\n",my_peer->sockfd);
+        int n = send(sockfd, temp_buffer, sizeof(int)*4 + sizeof(char), 0);
+        //printf("n is %d\n", n);
+        free(temp_buffer);
+    }
+}
+
 void sendPiece(int sockfd, int index, int begin, int len)
 {
-    unsigned char* send_buff = (unsigned char*)malloc(sizeof(int) * 3 + sizeof(unsigned char) * (1 + len));
+    unsigned char *send_buff;
+    MALLOC_PRO(send_buff,unsigned char *,sizeof(int)*3+sizeof(unsigned char)*(1+len));
     unsigned char* temp_buff = send_buff;
 
     int send_len = sizeof(int) * 2 + sizeof(char) * (1 + len);
@@ -243,7 +333,8 @@ void sendPiece(int sockfd, int index, int begin, int len)
 
 void sendHave(int sockfd, int index)
 {
-    unsigned char* send_buff = (unsigned char*)malloc(sizeof(int) * 2 + sizeof(unsigned char));
+    unsigned char *send_buff;
+    MALLOC_PRO(send_buff,unsigned char *,sizeof(int)*2+sizeof(unsigned char));
     unsigned char* temp_buff = send_buff;
 
     int send_len = sizeof(int) + sizeof(char);
@@ -260,7 +351,8 @@ void sendHave(int sockfd, int index)
 }
 void sendInterested(int sockfd)
 {
-    unsigned char *send_buff = (unsigned char *)malloc(sizeof(int) + sizeof(unsigned char));
+    unsigned char *send_buff;
+    MALLOC_PRO(send_buff,unsigned char *,sizeof(int)+sizeof(unsigned char));
     unsigned char *temp_buffer = send_buff;
 
     int send_len = 1;
@@ -274,7 +366,8 @@ void sendInterested(int sockfd)
 }
 void sendUnchoked(int sockfd)
 {
-    unsigned char *send_buff = (unsigned char *)malloc(sizeof(int) + sizeof(unsigned char));
+    unsigned char *send_buff;
+    MALLOC_PRO(send_buff,unsigned char *,sizeof(int)+sizeof(unsigned char));
     unsigned char *temp_buffer = send_buff;
 
     int send_len = 1;
@@ -285,6 +378,5 @@ void sendUnchoked(int sockfd)
     printf("now I will send unchoked pack\n");
     send(sockfd,temp_buffer,sizeof(int)+sizeof(unsigned char),0);
     free(temp_buffer);
-    
 }
 
