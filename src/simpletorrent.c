@@ -43,6 +43,46 @@ void init()
         pthread_mutex_init(&(peers_pool[i].piecesInfo_mutex),NULL);
     }
 }
+void init_subpiece()
+{
+    subpiecesNum = (int *)malloc(sizeof(int) * piecesNum);
+    isSubpiecesReceived = (int **)malloc(sizeof(int *) * piecesNum);
+    printf("piece_len is %d\n", g_torrentmeta->piece_len);
+    int i;
+    for(i= 0; i < piecesNum; i ++)
+    {
+        int temp;
+        if(i != piecesNum -1)
+        {
+            temp = g_torrentmeta->piece_len / SUB_PIECE_LEN;
+            if(g_torrentmeta->piece_len % SUB_PIECE_LEN != 0)
+            {
+                temp ++;
+            }
+        }
+        else
+        {
+            int piece_len = g_filelen % g_torrentmeta->piece_len;
+            if(piece_len == 0)
+            {
+                piece_len = g_torrentmeta->piece_len;
+            }
+            temp = piece_len / SUB_PIECE_LEN;
+            if(piece_len % SUB_PIECE_LEN != 0)
+            {
+                temp ++;
+            }
+        }
+        subpiecesNum[i] = temp;
+        isSubpiecesReceived[i] = (int *)malloc(sizeof(int) * temp);
+        int j = 0;
+        for(; j < temp; j ++)
+        {
+            isSubpiecesReceived[i][j] = piecesInfo[i];
+        }
+    } 
+}
+
 void update_g_left(int *pieces_info)
 {
    g_left = g_torrentmeta->length;
@@ -82,6 +122,8 @@ void init_peer(peerdata *my_peer,int pos)
     peers_pool[pos].ip = (char *)malloc((strlen(my_peer->ip)+1)*sizeof(char));
     memcpy(peers_pool[pos].ip,my_peer->ip,strlen(my_peer->ip));
     peers_pool[pos].ip[strlen(my_peer->ip)] = '\0';
+    peers_pool[pos].piecesInfo = (int*)malloc(piecesNum * sizeof(int));
+    memset(peers_pool[pos].piecesInfo,0,piecesNum*sizeof(int));
 }
 void destroy_peer(int pos)
 {
@@ -169,6 +211,8 @@ int main(int argc, char **argv)
     printf("111\n");
     announce_url_t* announce_info;
     announce_info = parse_announce_url(g_torrentmeta->announce);
+
+    init_subpiece();
     // 提取tracker url中的IP地址
     //printf("HOSTNAME: %s\n",announce_info->hostname);
     struct hostent *record;

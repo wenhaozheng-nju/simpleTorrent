@@ -278,8 +278,6 @@ void *recv_from_peer(void *p)
                 assert((len-1)*8 >= piecesNum);
                 printf("piecesNum is %d\n",piecesNum);
                 pthread_mutex_lock(&my_peer->piecesInfo_mutex);
-                my_peer->piecesInfo = (int*)malloc(piecesNum * sizeof(int));
-                memset(my_peer->piecesInfo,0,piecesNum*sizeof(int));
                 for(i=0; i<piecesNum; i++)
                     my_peer->piecesInfo[i] = bit_array[i];
                 pthread_mutex_unlock(&my_peer->piecesInfo_mutex);
@@ -397,6 +395,7 @@ void *recv_from_peer(void *p)
                                 pthread_mutex_unlock(&peers_pool[q].piecesInfo_mutex);
                             }
                         }
+                        //printf("22\n");
                     }
                     else
                     {
@@ -407,16 +406,17 @@ void *recv_from_peer(void *p)
                             isSubpiecesReceived[index][j] = 0;
                         }
                     }
+                    //printf("33\n");
                     int f = 0, flag1 = 0;
+                    pthread_mutex_lock(&my_peer->piecesInfo_mutex);
                     for(; f < piecesNum; f ++)
                     {
-                        pthread_mutex_lock(&peers_pool[f].piecesInfo_mutex);
                         if(piecesInfo[f] == 0 && my_peer->piecesInfo[f] == 1)
                         {
                             flag1 = 1;
                         }
-                        pthread_mutex_unlock(&peers_pool[f].piecesInfo_mutex);
                     }
+                    pthread_mutex_unlock(&my_peer->piecesInfo_mutex);
                     if(flag1 == 1)
                     {
                         //sendInterested

@@ -40,41 +40,6 @@ void sendBitField(int sockfd)
     printf("temp buffer is %x %x %x %x\n",temp_buffer[0],temp_buffer[1],temp_buffer[2],temp_buffer[3]);
 
     //从这里开始我就看不懂在干什么了。。。
-    subpiecesNum = (int *)malloc(sizeof(int) * piecesNum);
-    isSubpiecesReceived = (int **)malloc(sizeof(int *) * piecesNum);
-    printf("piece_len is %d\n", g_torrentmeta->piece_len);
-    for(i= 0; i < piecesNum; i ++)
-    {
-        int temp;
-        if(i != piecesNum -1)
-        {
-            temp = g_torrentmeta->piece_len / SUB_PIECE_LEN;
-            if(g_torrentmeta->piece_len % SUB_PIECE_LEN != 0)
-            {
-                temp ++;
-            }
-        }
-        else
-        {
-            int piece_len = g_filelen % g_torrentmeta->piece_len;
-            if(piece_len == 0)
-            {
-                piece_len = g_torrentmeta->piece_len;
-            }
-            temp = piece_len / SUB_PIECE_LEN;
-            if(piece_len % SUB_PIECE_LEN != 0)
-            {
-                temp ++;
-            }
-        }
-        subpiecesNum[i] = temp;
-        isSubpiecesReceived[i] = (int *)malloc(sizeof(int) * temp);
-        int j = 0;
-        for(; j < temp; j ++)
-        {
-            isSubpiecesReceived[i][j] = piecesInfo[i];
-        }
-    }
 
     printf("Now I will send BitField pack\n");
     send(sockfd, temp_buffer, sizeof(int) + ntohl(len) * sizeof(unsigned char), 0);

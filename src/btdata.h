@@ -103,6 +103,7 @@ typedef struct _peer_t {
   char name[20];
   int *piecesInfo;
   int isRequest;
+  int isSendCancel;
   pthread_mutex_t sock_mutex;
   pthread_mutex_t alive_mutex;
   pthread_mutex_t request_mutex;
@@ -169,5 +170,15 @@ int *subpiecesNum;
 file_array *my_file_array;
 int least_prefer;
 pthread_mutex_t least_prefer_mutex;
+
+//用于end game
+int recvPieceNum;
+int endGame;
+pthread_mutex_t recvPieceNum_mutex;
+pthread_mutex_t endGame_mutex;
+int endPieceIndex;
+
+
+
 
 #endif

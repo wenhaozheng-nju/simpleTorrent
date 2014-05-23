@@ -87,4 +87,8 @@ void sendHave(int sockfd, int index);
 void sendInterested(int sockfd);
 void sendUnchoked(int sockfd);
 void destroy_peer(int pos);
+
+
+void sendRequestForEnd(int sockfd,int index);
+void sendCancel(int sockfd,int index);
 #endif
