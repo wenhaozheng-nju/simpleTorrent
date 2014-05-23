@@ -177,6 +177,7 @@ int endGame;
 pthread_mutex_t recvPieceNum_mutex;
 pthread_mutex_t endGame_mutex;
 int endPieceIndex;
+int endPeer;
 
 
 

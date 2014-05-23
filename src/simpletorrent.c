@@ -42,6 +42,12 @@ void init()
         pthread_mutex_init(&(peers_pool[i].request_mutex),NULL);
         pthread_mutex_init(&(peers_pool[i].piecesInfo_mutex),NULL);
     }
+    recvPieceNum = 0;
+    endGame = 0;
+    pthread_mutex_init(&recvPieceNum_mutex,NULL);
+    pthread_mutex_init(&recvPieceNum_mutex,NULL);
+    endPieceIndex = -1;
+    endPeer = -1;
 }
 void init_subpiece()
 {
