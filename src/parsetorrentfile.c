@@ -83,7 +83,8 @@ torrentmetadata_t* parsetorrentfile(char* filename)
             memset(ret->announce,0,strlen(ben_res->val.d[i].val->val.s) + 1);
             int pos = strlen(ben_res->val.d[i].val->val.s);
             memcpy(ret->announce,ben_res->val.d[i].val->val.s,strlen(ben_res->val.d[i].val->val.s));
-            printf("origin announce last byte is : %x\n",ret->announce[pos]);
+            //printf("origin announce last byte is : %x\n",ret->announce[pos]);
+            printf("announce is %s\n",ret->announce);
             filled++;
         }
         // info是一个字典, 它还有一些其他我们关心的键

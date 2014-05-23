@@ -10,6 +10,7 @@ announce_url_t* parse_announce_url(char* announce)
   char* url;
   int url_len = 0;
   announce_ind = strstr(announce,"/announce");
+  printf("announce_ind is %s\n",announce_ind);
   announce_ind--;
   while(*announce_ind != ':')
   {

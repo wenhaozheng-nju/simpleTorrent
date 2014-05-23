@@ -40,7 +40,7 @@ void read_buf(char *buf,int offset,int data_len)
     fseek(filename,cur_offset,SEEK_SET);
     if(my_file_array[i].length-cur_offset >= data_len)
     {
-        printf("offset is %d\n",my_file_array[i].length-cur_offset);
+        //printf("offset is %d\n",my_file_array[i].length-cur_offset);
         fread(buf,1,data_len,filename);
         fclose(filename);
         return;
@@ -86,9 +86,10 @@ void write_buf(char *buf,int offset,int data_len)
     }
     i--;
     FILE *filename = fopen(my_file_array[i].name,"r+");
-    fseek(filename,my_file_array[i].length - cur_offset,SEEK_SET);
+    fseek(filename,cur_offset,SEEK_SET);
     if(my_file_array[i].length-cur_offset >= data_len)
     {
+        //printf("offset is %d\n",my_file_array[i].length-cur_offset);
         fwrite(buf,1,data_len,filename);
         fclose(filename);
         return;
@@ -119,8 +120,7 @@ void write_buf(char *buf,int offset,int data_len)
             buf += my_file_array[i].length;
             i++;
         }
-    }
-
+    } 
 }
 
 int *new_file(torrentmetadata_t *meta_tree,char *name)
