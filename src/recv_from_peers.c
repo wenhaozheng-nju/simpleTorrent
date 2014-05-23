@@ -12,25 +12,25 @@ extern int errno;
 /* readn - read exactly n bytes */
 int readn( int fd, char *bp, size_t len)
 {
-	int cnt;
-	int rc;
+    int cnt;
+    int rc;
 
-	cnt = len;
-	while ( cnt > 0 )
-	{
-		rc = recv( fd, bp, cnt, 0 );
-		if ( rc < 0 )				/* read error? */
-		{
-			if ( errno == EINTR )	/* interrupted? */
-				continue;			/* restart the read */
-			return -1;				/* return error */
-		}
-		if ( rc == 0 )				/* EOF? */
-			return len - cnt;		/* return short count */
-		bp += rc;
-		cnt -= rc;
-	}
-	return len;
+    cnt = len;
+    while ( cnt > 0 )
+    {
+        rc = recv( fd, bp, cnt, 0 );
+        if ( rc < 0 )				/* read error? */
+        {
+            if ( errno == EINTR )	/* interrupted? */
+                continue;			/* restart the read */
+            return -1;				/* return error */
+        }
+        if ( rc == 0 )				/* EOF? */
+            return len - cnt;		/* return short count */
+        bp += rc;
+        cnt -= rc;
+    }
+    return len;
 }
 
 void sendshkhdmsg(int sockfd)
@@ -223,13 +223,16 @@ void *recv_from_peer(void *p)
                 {
                     int f = 0, flag = 0;
                     pthread_mutex_lock(&my_peer->piecesInfo_mutex);
-                    for(; f < piecesNum; f ++){
-                        if(piecesInfo[f] == 0 && my_peer->piecesInfo[f] == 1){
+                    for(; f < piecesNum; f ++)
+                    {
+                        if(piecesInfo[f] == 0 && my_peer->piecesInfo[f] == 1)
+                        {
                             flag = 1;
                         }
                     }
                     pthread_mutex_unlock(&my_peer->piecesInfo_mutex);
-                    if(flag == 1){
+                    if(flag == 1)
+                    {
                         if(my_peer->have_interest == 0)
                         {
                             //send interested
@@ -295,13 +298,16 @@ void *recv_from_peer(void *p)
                 printf("\n");
                 int f = 0, flag = 0;
                 pthread_mutex_lock(&my_peer->piecesInfo_mutex);
-                for(; f < piecesNum; f ++){
-                    if(piecesInfo[f] == 0 && my_peer->piecesInfo[f] == 1){
+                for(; f < piecesNum; f ++)
+                {
+                    if(piecesInfo[f] == 0 && my_peer->piecesInfo[f] == 1)
+                    {
                         flag = 1;
                     }
                 }
                 pthread_mutex_unlock(&my_peer->piecesInfo_mutex);
-                if(flag == 1){
+                if(flag == 1)
+                {
                     if(my_peer->have_interest == 0)
                     {
                         //send interested
@@ -366,6 +372,7 @@ void *recv_from_peer(void *p)
                             piecelen = g_torrentmeta->piece_len;
                         }
                     }
+                    printf("I ready to write file\n");
                     if(buffer2file(index, piecelen,piecebuffer) == 0)
                     {
                         pthread_mutex_lock(&my_peer->request_mutex);
@@ -378,37 +385,12 @@ void *recv_from_peer(void *p)
                             if(peers_pool[q].used == 1 && peers_pool[q].status >= 2 && peers_pool[q].sockfd > 0)
                             {
                                 pthread_mutex_lock(&peers_pool[q].piecesInfo_mutex);
-                                if(peers_pool[q].piecesInfo[index] == 0){
+                                if(peers_pool[q].piecesInfo[index] == 0)
+                                {
                                     sendHave(peers_pool[q].sockfd, index);
                                 }
                                 pthread_mutex_unlock(&peers_pool[q].piecesInfo_mutex);
                             }
-                        }
-                        int f = 0, flag = 0;
-                        pthread_mutex_lock(&peers_pool[q].piecesInfo_mutex);
-                        for(; f < piecesNum; f ++){
-                            if(piecesInfo[f] == 0 && my_peer->piecesInfo[f] == 1){
-                                flag = 1;
-                            }
-                        }
-                        pthread_mutex_unlock(&peers_pool[q].piecesInfo_mutex);
-                        if(flag == 1){
-                            //sendInterested
-                            if(my_peer->have_interest == 0)
-                            {
-                                sendInterested(my_peer->sockfd);
-                                my_peer->have_interest = 1;
-                            }
-                        }
-                        if(my_peer->choked == 0)
-                        {
-                            //sendRequest
-                            pthread_mutex_lock(&my_peer->request_mutex);
-                            if(my_peer->isRequest == 0)
-                            {
-                                sendRequest(k);
-                            }
-                            pthread_mutex_unlock(&my_peer->request_mutex);
                         }
                     }
                     else
@@ -419,6 +401,35 @@ void *recv_from_peer(void *p)
                         {
                             isSubpiecesReceived[index][j] = 0;
                         }
+                    }
+                    int f = 0, flag1 = 0;
+                    for(; f < piecesNum; f ++)
+                    {
+                        pthread_mutex_lock(&peers_pool[f].piecesInfo_mutex);
+                        if(piecesInfo[f] == 0 && my_peer->piecesInfo[f] == 1)
+                        {
+                            flag1 = 1;
+                        }
+                        pthread_mutex_unlock(&peers_pool[f].piecesInfo_mutex);
+                    }
+                    if(flag1 == 1)
+                    {
+                        //sendInterested
+                        if(my_peer->have_interest == 0)
+                        {
+                            sendInterested(my_peer->sockfd);
+                            my_peer->have_interest = 1;
+                        }
+                    }
+                    if(my_peer->choked == 0)
+                    {
+                        //sendRequest
+                        pthread_mutex_lock(&my_peer->request_mutex);
+                        if(my_peer->isRequest == 0)
+                        {
+                            sendRequest(k);
+                        }
+                        pthread_mutex_unlock(&my_peer->request_mutex);
                     }
                     free(piecebuffer);
                     piecebuffer = (unsigned char*)malloc(g_torrentmeta->piece_len);
