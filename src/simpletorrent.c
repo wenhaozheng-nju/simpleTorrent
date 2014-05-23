@@ -20,6 +20,7 @@ void init()
     g_uploaded = 0;
     g_downloaded = 0;
     pthread_mutex_init(&g_mutex,NULL);
+    pthread_mutex_init(&least_prefer_mutex, NULL);
     int i;
     for(i=0; i<MAXPEERS; i++)
     {
@@ -150,6 +151,17 @@ int main(int argc, char **argv)
     piecesInfo = parse_data_file(g_torrentmeta,&piecesNum); 
     printf("000\n");
     update_g_left(piecesInfo);
+
+    //init least_prefer flag
+    pthread_mutex_lock(&least_prefer_mutex);
+    least_prefer = 0;
+    int m = 0;
+    for(; m < piecesNum; m ++){
+        if(piecesInfo[m] == 1){
+            least_prefer = 1;
+        }
+    }
+    pthread_mutex_unlock(&least_prefer_mutex);
 
     g_filelen = g_torrentmeta->length;
     g_num_pieces = g_torrentmeta->num_pieces;

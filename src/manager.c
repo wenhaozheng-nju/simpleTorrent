@@ -132,14 +132,50 @@ void sendRequest(int k)
     printf("k is %d\n", k);
     peer_t* my_peer = &peers_pool[k];
     int i, requestPiece = -1;
-    for(i = 0; i < piecesNum; i ++)
-    {
-        if(piecesInfo[i] == 0 && my_peer->piecesInfo[i] == 1)
+    pthread_mutex_lock(&least_prefer_mutex);
+    if(least_prefer == 0){
+        for(i = 0; i < piecesNum; i ++)
         {
-            requestPiece = i;
-            break;
+            pthread_mutex_lock(&my_peer->piecesInfo_mutex);
+            if(piecesInfo[i] == 0 && my_peer->piecesInfo[i] == 1)
+            {
+                requestPiece = i;
+                pthread_mutex_unlock(&my_peer->piecesInfo_mutex);
+                break;
+            }
+            pthread_mutex_unlock(&my_peer->piecesInfo_mutex);
         }
     }
+    else{
+        int *have_piece_num = (int *)malloc(piecesNum * sizeof(int));
+        for(i = 0; i < piecesNum; i ++){
+            have_piece_num[i] = 0;
+        }
+        for(i = 0; i < MAXPEERS; i ++){
+            if(peers_pool[i].used == 1 && peers_pool[i].status >= 2){
+                int j = 0;
+                pthread_mutex_lock(&peers_pool[i].piecesInfo_mutex);
+                for(; j < piecesNum; j ++){
+                    if(peers_pool[i].piecesInfo[j] == 1){
+                        have_piece_num[j] ++;
+                    }
+                }
+                pthread_mutex_unlock(&peers_pool[i].piecesInfo_mutex);
+            }
+        }
+        int min = MAXPEERS + 1;
+        for(i = 0; i < piecesNum; i ++){
+            pthread_mutex_lock(&my_peer->piecesInfo_mutex);
+            if(piecesInfo[i] == 0 && my_peer->piecesInfo[i] == 1){
+                if(have_piece_num[i] < min){
+                    min = have_piece_num[i];
+                    requestPiece = i;
+                }
+            }
+            pthread_mutex_unlock(&my_peer->piecesInfo_mutex);
+        }
+    }
+    pthread_mutex_unlock(&least_prefer_mutex);
     printf("requestPiece is %d\n", requestPiece);
     if(requestPiece >= 0)
     {
