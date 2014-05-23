@@ -97,7 +97,7 @@ void *recv_from_peer(void *p)
     {
         buffer = (unsigned char*)malloc(BUFSIZE);
         memset(buffer, 0, BUFSIZE);
-        printf("now I waiting recv\n");
+        printf("\033[34m now I waiting recv(sockfd is %d) \033[m\n",sockfd);
         n = readn(sockfd, buffer, 4);
         if(n <= 0)
         {
@@ -106,7 +106,7 @@ void *recv_from_peer(void *p)
         }
         int len = *(int*)buffer;
         len = ntohl(len);
-        assert(len >= 0);
+        assert(len > 0 && len <= SUB_PIECE_LEN+9);
         /*
         if(len == 19 && strcmp(buffer, BT_PROTOCOL) == 0){
             //握手报文
@@ -221,24 +221,11 @@ void *recv_from_peer(void *p)
                 pthread_mutex_unlock(&my_peer->piecesInfo_mutex);
                 if(piecesInfo[index] == 0)
                 {
-                    int f = 0, flag = 0;
-                    pthread_mutex_lock(&my_peer->piecesInfo_mutex);
-                    for(; f < piecesNum; f ++)
+                    if(my_peer->have_interest == 0)
                     {
-                        if(piecesInfo[f] == 0 && my_peer->piecesInfo[f] == 1)
-                        {
-                            flag = 1;
-                        }
-                    }
-                    pthread_mutex_unlock(&my_peer->piecesInfo_mutex);
-                    if(flag == 1)
-                    {
-                        if(my_peer->have_interest == 0)
-                        {
-                            //send interested
-                            sendInterested(sockfd);
-                            my_peer->have_interest = 1;
-                        }
+                        //send interested
+                        sendInterested(sockfd);
+                        my_peer->have_interest = 1;
                     }
                     if(my_peer->choked == 0)
                     {
@@ -246,7 +233,8 @@ void *recv_from_peer(void *p)
                         if(my_peer->isRequest == 0)
                         {
                             //send request
-                            sendRequest(k);
+                            my_peer->isRequest = 1;
+                            sendRequestForEnd(my_peer->sockfd, index);
                         }
                         pthread_mutex_unlock(&my_peer->request_mutex);
                     }
@@ -326,8 +314,10 @@ void *recv_from_peer(void *p)
                     begin = ntohl(begin);
                     int blocklen = *(int*)&buffer[9];
                     blocklen = ntohl(blocklen);
-                    printf("request packet 's index is %d,begin is %d,blocklen is %d\n",index,begin,blocklen);
+                    printf("\033[33m request packet 's index is %d,begin is %d,blocklen is %d,sockfd is %d\n \033[m",index,begin,blocklen,sockfd);
+                    pthread_mutex_lock(&g_mutex);
                     sendPiece(my_peer->sockfd, index, begin, blocklen);
+                    pthread_mutex_unlock(&g_mutex);
                 }
                 break;
             }
@@ -339,10 +329,12 @@ void *recv_from_peer(void *p)
                 index = ntohl(index);
                 int begin = *(int*)&buffer[5];
                 begin = ntohl(begin);
-                printf("index is %x,and begin is %x\n",index,begin);
+                printf("index is %x,and begin is %x and sockfd is %d\n",index,begin,sockfd);
                 int blocklen = len - sizeof(char) - sizeof(int)*2;
                 memcpy(piecebuffer+begin, buffer+9, blocklen);
+                pthread_mutex_lock(&g_mutex);
                 g_downloaded += blocklen;
+                pthread_mutex_unlock(&g_mutex);
                 int subPieceNo = begin / SUB_PIECE_LEN;
                 assert(piecesInfo[index] == 1);
                 isSubpiecesReceived[index][subPieceNo] = 1;
@@ -374,7 +366,8 @@ void *recv_from_peer(void *p)
                     if(buffer2file(index, piecelen,piecebuffer) == 0)
                     {
                         pthread_mutex_lock(&least_prefer_mutex);
-                        if(least_prefer == 0){
+                        if(least_prefer == 0)
+                        {
                             least_prefer = 1;
                         }
                         pthread_mutex_unlock(&least_prefer_mutex);
@@ -429,12 +422,10 @@ void *recv_from_peer(void *p)
                     if(my_peer->choked == 0)
                     {
                         //sendRequest
-                        pthread_mutex_lock(&my_peer->request_mutex);
                         if(my_peer->isRequest == 0)
                         {
                             sendRequest(k);
                         }
-                        pthread_mutex_unlock(&my_peer->request_mutex);
                     }
                     free(piecebuffer);
                     piecebuffer = (unsigned char*)malloc(g_torrentmeta->piece_len);

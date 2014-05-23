@@ -16,7 +16,7 @@
 #define PEER_ID_LEN 20
 #define MAXPEERS 100
 #define KEEP_ALIVE_INTERVAL 3
-#define SUB_PIECE_LEN 65536
+#define SUB_PIECE_LEN 1024
 
 #define BT_STARTED 0
 #define BT_STOPPED 1
