@@ -328,7 +328,8 @@ void sendPiece(int sockfd, int index, int begin, int len)
 
     file2buffer(index, begin, len, send_buff);
     printf("Now I will send piece pack\n");
-    send(sockfd, temp_buff, sizeof(int) * 3 + sizeof(unsigned char) * (1 + len), 0);
+    int n = send(sockfd, temp_buff, sizeof(int) * 3 + sizeof(unsigned char) * (1 + len), 0);
+    assert(sizeof(int)*3 + sizeof(unsigned char)*(1+len) == n);
     g_uploaded += len;
     free(temp_buff);
 }

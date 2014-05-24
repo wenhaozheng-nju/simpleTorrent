@@ -106,7 +106,7 @@ void *recv_from_peer(void *p)
         }
         int len = *(int*)buffer;
         len = ntohl(len);
-        assert(len > 0 && len <= SUB_PIECE_LEN+9);
+        assert(len >= 0 && len <= SUB_PIECE_LEN+9);
         /*
         if(len == 19 && strcmp(buffer, BT_PROTOCOL) == 0){
             //握手报文
@@ -190,20 +190,24 @@ void *recv_from_peer(void *p)
             {
                 //unchoke
                 my_peer->choked = 0;
-                pthread_mutex_lock(&my_peer->request_mutex);
+                //pthread_mutex_lock(&my_peer->request_mutex);
                 if(my_peer->isRequest == 0)
                 {
                     //send request
+                    pthread_mutex_lock(&my_peer->sock_mutex);
                     sendRequest(k);
+                    pthread_mutex_unlock(&my_peer->sock_mutex);
                 }
-                pthread_mutex_unlock(&my_peer->request_mutex);
+                //pthread_mutex_unlock(&my_peer->request_mutex);
                 break;
             }
             case 2:
             {
                 //interested
                 my_peer->interested = 1;
+                pthread_mutex_lock(&my_peer->sock_mutex);
                 sendUnchoked(my_peer->sockfd);
+                pthread_mutex_unlock(&my_peer->sock_mutex);
                 break;
             }
             case 3:
@@ -224,19 +228,23 @@ void *recv_from_peer(void *p)
                     if(my_peer->have_interest == 0)
                     {
                         //send interested
+                        pthread_mutex_lock(&my_peer->sock_mutex);
                         sendInterested(sockfd);
+                        pthread_mutex_unlock(&my_peer->sock_mutex);
                         my_peer->have_interest = 1;
                     }
                     if(my_peer->choked == 0)
                     {
-                        pthread_mutex_lock(&my_peer->request_mutex);
+                        //pthread_mutex_lock(&my_peer->request_mutex);
                         if(my_peer->isRequest == 0)
                         {
                             //send request
                             my_peer->isRequest = 1;
+                            pthread_mutex_lock(&my_peer->sock_mutex);
                             sendRequestForEnd(my_peer->sockfd, index);
+                            pthread_mutex_unlock(&my_peer->sock_mutex);
                         }
-                        pthread_mutex_unlock(&my_peer->request_mutex);
+                        //pthread_mutex_unlock(&my_peer->request_mutex);
                     }
                 }
                 break;
@@ -297,7 +305,9 @@ void *recv_from_peer(void *p)
                     if(my_peer->have_interest == 0)
                     {
                         //send interested
+                        pthread_mutex_lock(&my_peer->sock_mutex);
                         sendInterested(sockfd);
+                        pthread_mutex_unlock(&my_peer->sock_mutex);
                         my_peer->have_interest = 1;
                     }
                 }
@@ -315,9 +325,9 @@ void *recv_from_peer(void *p)
                     int blocklen = *(int*)&buffer[9];
                     blocklen = ntohl(blocklen);
                     printf("\033[33m request packet 's index is %d,begin is %d,blocklen is %d,sockfd is %d\n \033[m",index,begin,blocklen,sockfd);
-                    pthread_mutex_lock(&g_mutex);
+                    pthread_mutex_lock(&my_peer->sock_mutex);
                     sendPiece(my_peer->sockfd, index, begin, blocklen);
-                    pthread_mutex_unlock(&g_mutex);
+                    pthread_mutex_unlock(&my_peer->sock_mutex);
                 }
                 break;
             }
@@ -383,9 +393,13 @@ void *recv_from_peer(void *p)
                                 pthread_mutex_lock(&peers_pool[q].piecesInfo_mutex);
                                 if(peers_pool[q].piecesInfo[index] == 0)
                                 {
+                                    pthread_mutex_unlock(&peers_pool[q].piecesInfo_mutex);
+                                    pthread_mutex_lock(&peers_pool[q].sock_mutex);
                                     sendHave(peers_pool[q].sockfd, index);
+                                    pthread_mutex_unlock(&peers_pool[q].sock_mutex);
                                 }
-                                pthread_mutex_unlock(&peers_pool[q].piecesInfo_mutex);
+                                else
+                                    pthread_mutex_unlock(&peers_pool[q].piecesInfo_mutex);
                             }
                         }
                         //printf("22\n");
@@ -415,7 +429,9 @@ void *recv_from_peer(void *p)
                         //sendInterested
                         if(my_peer->have_interest == 0)
                         {
+                            pthread_mutex_lock(&my_peer->sock_mutex);
                             sendInterested(my_peer->sockfd);
+                            pthread_mutex_unlock(&my_peer->sock_mutex);
                             my_peer->have_interest = 1;
                         }
                     }
@@ -424,7 +440,9 @@ void *recv_from_peer(void *p)
                         //sendRequest
                         if(my_peer->isRequest == 0)
                         {
+                            pthread_mutex_lock(&my_peer->sock_mutex);
                             sendRequest(k);
+                            pthread_mutex_unlock(&my_peer->sock_mutex);
                         }
                     }
                     free(piecebuffer);
