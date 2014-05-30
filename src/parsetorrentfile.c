@@ -71,14 +71,21 @@ torrentmetadata_t* parsetorrentfile(char* filename)
         printf("%08X ",ret->info_hash[i]);
     }
     printf("\n");
-
+    int flag = 0;
     // 检查键并提取对应的信息
     int filled=0;
     for(i=0; ben_res->val.d[i].val != NULL; i++)
     {
         int j;
-        if(!strncmp(ben_res->val.d[i].key,"announce",strlen("announce")))
+        if(!strncmp(ben_res->val.d[i].key,"nodes",strlen("nodes")))
         {
+            printf("in nodes\n");
+        }
+        else if(!strncmp(ben_res->val.d[i].key,"announce",strlen("announce")))
+        {
+            if(flag == 1)
+                continue;
+            flag = 1;
             ret->announce = (char*)malloc( (strlen(ben_res->val.d[i].val->val.s) + 1) *sizeof(char));
             memset(ret->announce,0,strlen(ben_res->val.d[i].val->val.s) + 1);
             int pos = strlen(ben_res->val.d[i].val->val.s);
@@ -88,7 +95,7 @@ torrentmetadata_t* parsetorrentfile(char* filename)
             filled++;
         }
         // info是一个字典, 它还有一些其他我们关心的键
-        if(!strncmp(ben_res->val.d[i].key,"info",strlen("info")))
+        else if(!strncmp(ben_res->val.d[i].key,"info",strlen("info")))
         {
             be_dict* idict;
             if(ben_res->val.d[i].val->type != BE_DICT)
@@ -182,14 +189,15 @@ torrentmetadata_t* parsetorrentfile(char* filename)
                     ret->num_pieces = num_pieces;
                     printf("num_pieces is %d\n",ret->num_pieces);
                     filled++;
+                    goto L;
                 }
-
             } // for循环结束
+            printf("22\n");
         } // info键处理结束
     }
 
     // 确认已填充了必要的字段
-
+    L:
     be_free(ben_res);
 
     if(filled < 5)
