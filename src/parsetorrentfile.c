@@ -4,6 +4,20 @@
 #include "sha1.h"
 
 
+char* find_nodes(char *data,int len)
+{
+
+    int i = 0;
+    for(; i<len-strlen("e5:nodes"); i++)
+    {
+        if(strncmp(data+i,"e5:nodes",strlen("e5:nodes")) == 0)
+        {
+            return data+i;
+        }
+    }
+    return NULL;
+}
+
 
 // 注意: 这个函数只能处理单文件模式torrent
 torrentmetadata_t* parsetorrentfile(char* filename)
@@ -46,15 +60,24 @@ torrentmetadata_t* parsetorrentfile(char* filename)
     info_loc += 4; // 将指针指向值开始的地方
     info_end = data+flen-1;
     // 去掉结尾的e
-    if(*info_end == 'e')
+    char *s = find_nodes(data,flen);
+    if(s == NULL)
     {
-        --info_end;
+        if(*info_end == 'e')
+        {
+            --info_end;
+        }
+    }
+    else
+    {
+        info_end = s;
     }
 
     char* p;
     int len = 0;
     for(p=info_loc; p<=info_end; p++) len++;
 
+    printf("len is %d\n",len);
     // 计算上面字符串的SHA1哈希值以获取info_hash
     SHA1Context sha;
     SHA1Reset(&sha);
@@ -197,7 +220,7 @@ torrentmetadata_t* parsetorrentfile(char* filename)
     }
 
     // 确认已填充了必要的字段
-    L:
+L:
     be_free(ben_res);
 
     if(filled < 5)
